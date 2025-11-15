@@ -1,0 +1,136 @@
+@page "/user"
+@inject ITicketService TicketService
+@inject IUserTicketService UserTicketService
+
+<h1>Panel użytkownika</h1>
+<section class="page-panel">
+    <EditForm Model="form" OnValidSubmit="SubmitTicket" class="ticket-form">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <InputText @bind-Value="form.Title" placeholder="Tytuł zgłoszenia" />
+        <div class="grid-2">
+            <InputText @bind-Value="form.ErrorCode" placeholder="Kod błędu" />
+            <InputText @bind-Value="form.MachineName" placeholder="Maszyna" />
+        </div>
+        <div class="grid-2">
+            <InputText @bind-Value="form.ProductionLine" placeholder="Linia" />
+            <InputText @bind-Value="form.Location" placeholder="Lokalizacja" />
+        </div>
+        <InputText @bind-Value="form.OperatorName" placeholder="Operator" />
+        <InputTextArea @bind-Value="form.OperatorDescription" placeholder="Opis" />
+        <div class="action-row">
+            <button class="primary" type="submit">Zgłoś usterkę</button>
+        </div>
+    </EditForm>
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="toast">@successMessage</div>
+    }
+</section>
+
+<section class="page-panel" style="margin-top:24px">
+    <h2>Ostatnie zgłoszenia</h2>
+    <div class="table-list">
+        @if (recentTickets is null)
+        {
+            <p class="empty-state">Ładowanie…</p>
+        }
+        else if (!recentTickets.Any())
+        {
+            <p class="empty-state">Brak zgłoszeń.</p>
+        }
+        else
+        {
+            foreach (var ticket in recentTickets)
+            {
+                <div class="ticket-card">
+                    <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM HH:mm • @ticket.MachineName</div>
+                    <strong>@ticket.Title</strong>
+                    <p>@ticket.OperatorDescription</p>
+                    <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
+                    <button style="margin-top:10px" @onclick="() => Select(ticket.Id)">Szczegóły</button>
+                </div>
+            }
+        }
+    </div>
+</section>
+
+@if (selectedTicket is not null)
+{
+    <div class="dialog-backdrop">
+        <div class="dialog">
+            <header>
+                <h3>@selectedTicket.Title</h3>
+                <button @onclick="() => selectedTicket = null">×</button>
+            </header>
+            <p><strong>Kod:</strong> @selectedTicket.ErrorCode</p>
+            <p><strong>Opis:</strong> @selectedTicket.OperatorDescription</p>
+            <p><strong>Status:</strong> @selectedTicket.Status</p>
+            <p><strong>Serwis:</strong> @selectedTicket.ServiceDescription</p>
+        </div>
+    </div>
+}
+
+@code {
+    private TicketForm form = new();
+    private IReadOnlyList<WorkshopTicket>? recentTickets;
+    private WorkshopTicket? selectedTicket;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTickets();
+    }
+
+    private async Task LoadTickets()
+    {
+        recentTickets = await UserTicketService.GetRecentAsync();
+    }
+
+    private async Task SubmitTicket()
+    {
+        var input = new TicketInput(form.Title, form.ErrorCode, form.MachineName, form.ProductionLine, form.Location, form.OperatorName, form.OperatorDescription);
+        await TicketService.CreateTicketAsync(input);
+        form = new();
+        successMessage = "Zgłoszenie zapisane";
+        await LoadTickets();
+    }
+
+    private async Task Select(int id)
+    {
+        selectedTicket = await TicketService.GetTicketAsync(id);
+    }
+
+    private string GetStatusClass(TicketStatus status) => status switch
+    {
+        TicketStatus.Open => "status-open",
+        TicketStatus.InProgress => "status-progress",
+        TicketStatus.Closed => "status-closed",
+        TicketStatus.Accepted => "status-closed",
+        TicketStatus.Rejected => "status-rejected",
+        _ => string.Empty
+    };
+
+    private sealed class TicketForm
+    {
+        [Required]
+        public string Title { get; set; } = string.Empty;
+
+        public string ErrorCode { get; set; } = string.Empty;
+
+        [Required]
+        public string MachineName { get; set; } = string.Empty;
+
+        [Required]
+        public string ProductionLine { get; set; } = string.Empty;
+
+        [Required]
+        public string Location { get; set; } = string.Empty;
+
+        [Required]
+        public string OperatorName { get; set; } = string.Empty;
+
+        [Required]
+        public string OperatorDescription { get; set; } = string.Empty;
+    }
+}

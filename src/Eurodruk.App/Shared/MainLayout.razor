@@ -1,0 +1,21 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <header class="app-shell__header">
+        <div class="brand">
+            <span class="brand__name">Eurodruk</span>
+            <span class="brand__subtitle">Blazor</span>
+        </div>
+        <nav class="main-nav">
+            <NavLink href="/" Match="NavLinkMatch.All">Start</NavLink>
+            <NavLink href="/workshop">Warsztat</NavLink>
+            <NavLink href="/reports">Raporty</NavLink>
+            <NavLink href="/user">Użytkownik</NavLink>
+            <NavLink href="/acceptance">Akceptacje</NavLink>
+        </nav>
+    </header>
+
+    <main class="app-shell__body">
+        @Body
+    </main>
+</div>

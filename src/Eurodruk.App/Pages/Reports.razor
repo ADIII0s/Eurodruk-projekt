@@ -1,0 +1,243 @@
+@page "/reports"
+@inject ITicketService TicketService
+@inject IReportService ReportService
+
+<h1>Panel raportów</h1>
+<div class="grid-2" style="margin-top:16px">
+    <section class="page-panel">
+        <h2>Zgłoszenia</h2>
+        <div class="filters">
+            <label>
+                <span>Status</span>
+                <select @bind="filter.Status">
+                    <option value="">Dowolny</option>
+                    <option value="Closed">Zamknięte</option>
+                    <option value="Accepted">Zaakceptowane</option>
+                </select>
+            </label>
+            <label>
+                <span>Maszyna</span>
+                <input @bind="filter.Machine" />
+            </label>
+            <label>
+                <span>Linia</span>
+                <input @bind="filter.Line" />
+            </label>
+            <label>
+                <span>Tekst</span>
+                <input @bind="filter.Text" />
+            </label>
+            <div class="actions">
+                <button class="btn" @onclick="ApplyFilters">Szukaj</button>
+                <button class="btn" @onclick="Clear">Wyczyść</button>
+            </div>
+        </div>
+
+        <div class="table-list" style="margin-top:18px">
+            @if (tickets is null)
+            {
+                <p class="empty-state">Ładowanie…</p>
+            }
+            else if (!tickets.Any())
+            {
+                <p class="empty-state">Brak danych</p>
+            }
+            else
+            {
+                foreach (var ticket in tickets)
+                {
+                    <div class="ticket-card">
+                        <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM HH:mm • @ticket.MachineName</div>
+                        <strong>@ticket.Title</strong>
+                        <p>@ticket.OperatorDescription</p>
+                        <div class="action-row">
+                            <button class="primary" @onclick="() => AddTicket(ticket.Id)">Dodaj do raportu</button>
+                            <button @onclick="() => SelectTicket(ticket.Id)">Podgląd</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+    <section class="page-panel">
+        <h2>Raport roboczy</h2>
+        @if (!selectedTicketIds.Any())
+        {
+            <p class="empty-state">Zaznacz zgłoszenia aby zbudować raport.</p>
+        }
+        else
+        {
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Zgłoszenie</th>
+                        <th>Maszyna</th>
+                        <th>Linia</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in tickets?.Where(t => selectedTicketIds.Contains(t.Id)) ?? Enumerable.Empty<WorkshopTicket>())
+                    {
+                        <tr>
+                            <td>@ticket.Title</td>
+                            <td>@ticket.MachineName</td>
+                            <td>@ticket.ProductionLine</td>
+                            <td><button @onclick="() => RemoveTicket(ticket.Id)">Usuń</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <EditForm Model="reportModel" OnValidSubmit="CreateReport">
+                <DataAnnotationsValidator />
+                <div class="filters" style="margin-top:12px">
+                    <label>
+                        <span>Nazwa raportu</span>
+                        <InputText @bind-Value="reportModel.Title" />
+                    </label>
+                    <label>
+                        <span>Autor</span>
+                        <InputText @bind-Value="reportModel.Author" />
+                    </label>
+                </div>
+                <div class="action-row" style="margin-top:12px">
+                    <button class="primary" type="submit">Generuj raport</button>
+                </div>
+            </EditForm>
+            @if (!string.IsNullOrWhiteSpace(reportSuccess))
+            {
+                <div class="toast">@reportSuccess</div>
+            }
+        }
+
+        <h2 style="margin-top:32px">Historia raportów</h2>
+        <div class="table-list">
+            @if (reports is null)
+            {
+                <p class="empty-state">Ładowanie…</p>
+            }
+            else if (!reports.Any())
+            {
+                <p class="empty-state">Brak raportów.</p>
+            }
+            else
+            {
+                foreach (var report in reports)
+                {
+                    <div class="ticket-card">
+                        <strong>@report.Title</strong>
+                        <div class="ticket-card__meta">@report.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm • @report.Author</div>
+                        <ul>
+                            @foreach (var item in report.Items)
+                            {
+                                <li>@item.Summary.Replace("\n", " | ")</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+</div>
+
+@if (previewTicket is not null)
+{
+    <div class="dialog-backdrop">
+        <div class="dialog">
+            <header>
+                <h3>@previewTicket.Title</h3>
+                <button @onclick="() => previewTicket = null">×</button>
+            </header>
+            <p><strong>Maszyna:</strong> @previewTicket.MachineName (@previewTicket.ProductionLine)</p>
+            <p>@previewTicket.OperatorDescription</p>
+            <p>@previewTicket.ServiceDescription</p>
+        </div>
+    </div>
+}
+
+@code {
+    private readonly HashSet<int> selectedTicketIds = new();
+    private FilterModel filter = new();
+    private IReadOnlyList<WorkshopTicket>? tickets;
+    private IReadOnlyList<MaintenanceReport>? reports;
+    private ReportForm reportModel = new();
+    private string? reportSuccess;
+    private WorkshopTicket? previewTicket;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTickets();
+        await LoadReports();
+    }
+
+    private async Task LoadTickets()
+    {
+        var ticketFilter = new TicketFilter(filter.Status, filter.Machine, filter.Line, null, null, filter.Text);
+        tickets = await TicketService.GetTicketsAsync(ticketFilter);
+    }
+
+    private async Task LoadReports()
+    {
+        reports = await ReportService.GetReportsAsync();
+    }
+
+    private async Task ApplyFilters()
+    {
+        await LoadTickets();
+    }
+
+    private async Task Clear()
+    {
+        filter = new();
+        await LoadTickets();
+    }
+
+    private void AddTicket(int id)
+    {
+        selectedTicketIds.Add(id);
+    }
+
+    private void RemoveTicket(int id)
+    {
+        selectedTicketIds.Remove(id);
+    }
+
+    private async Task CreateReport()
+    {
+        if (!selectedTicketIds.Any())
+        {
+            return;
+        }
+
+        var input = new ReportInput(reportModel.Title, reportModel.Author, selectedTicketIds.ToList());
+        var report = await ReportService.CreateReportAsync(input);
+        reportSuccess = $"Wygenerowano raport #{report.Id}";
+        selectedTicketIds.Clear();
+        reportModel = new();
+        await LoadReports();
+    }
+
+    private async Task SelectTicket(int id)
+    {
+        previewTicket = await TicketService.GetTicketAsync(id);
+    }
+
+    private sealed class FilterModel
+    {
+        public TicketStatus? Status { get; set; } = TicketStatus.Closed;
+        public string? Machine { get; set; }
+        public string? Line { get; set; }
+        public string? Text { get; set; }
+    }
+
+    private sealed class ReportForm
+    {
+        [Required]
+        public string Title { get; set; } = "Raport z warsztatu";
+
+        [Required]
+        public string Author { get; set; } = "Automat";
+    }
+}
