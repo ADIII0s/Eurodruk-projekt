@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Warsztat – raportowanie</title>
+<style>
+:root{
+  --bg:#0f1216; --panel:#161b22; --panel-2:#0f141b;
+  --muted:#a9b1bb; --text:#e7edf5;
+  --accent:#33c3ff; --accent-2:#7a7cff;
+  --ok:#3ddc97; --warn:#ffb020;
+  --radius:18px; --gap:14px;
+  --shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+  --border:1px solid rgba(255,255,255,.06);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; background:linear-gradient(180deg,#0b0e12 0%, var(--bg) 100%);
+  color:var(--text); font:14px/1.45 system-ui,Segoe UI,Roboto,Ubuntu,Arial}
+
+/* GRID */
+.app{max-width:1400px; margin-inline:auto; padding:24px; display:grid;
+  grid-template-columns:1fr 1.25fr 1fr; gap:24px}
+@media (max-width:1200px){.app{grid-template-columns:1fr}}
+
+.panel{background: radial-gradient(120% 120% at 0% 0%, #121720 0%, var(--panel) 50%, var(--panel-2) 100%);
+  border:var(--border); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); padding:18px}
+.panel h2{margin:0 0 12px; font-size:15px; font-weight:600; color:#dce6f2}
+
+/* LISTA LEWA */
+.left{display:flex; flex-direction:column; min-height:640px}
+.list{height:360px; overflow:auto; display:flex; flex-direction:column; gap:10px; padding:8px;
+  border-radius:var(--radius); background:rgba(0,0,0,.15); border:var(--border)}
+.item{display:grid; grid-template-columns:auto 90px; gap:10px; align-items:center;
+  padding:12px 14px; border-radius:12px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); cursor:pointer}
+.item:hover{outline:1px solid rgba(51,195,255,.25); background:rgba(255,255,255,.05)}
+.item.active{outline:1px solid rgba(51,195,255,.45); background:rgba(51,195,255,.06)}
+.item .title{font-weight:600}
+.item .meta{color:var(--muted); font-size:12px}
+.badge{font-size:12px; padding:4px 10px; border-radius:999px; text-align:center}
+.badge.ok{background:rgba(61,220,151,.18); color:#a3f3d3; border:1px solid rgba(61,220,151,.35)}
+.badge.open{background:rgba(255,176,32,.15); color:#ffd18a; border:1px solid rgba(255,176,32,.35)}
+.empty{color:var(--muted); padding:6px 4px}
+
+/* Filtry przyklejone na dole */
+.filters-wrap{
+  margin-top:16px; 
+}
+
+.toolbar-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px}
+.btn{padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06); color:var(--text); cursor:pointer; user-select:none}
+.btn:hover{background:rgba(255,255,255,.12)}
+.btn.toggle.active{background:linear-gradient(90deg, rgba(51,195,255,.22), rgba(122,124,255,.22));
+  border-color:rgba(51,195,255,.35)}
+.btn.accent{border-color:rgba(51,195,255,.35); background:rgba(51,195,255,.12)}
+.btn.ghost{background:transparent}
+
+.filters{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
+  padding:12px; border-radius:14px; border:var(--border); background:rgba(255,255,255,.03)}
+.filters label{display:grid; gap:6px; font-size:12px; color:var(--muted)}
+.filters input{padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.25); color:var(--text)}
+.filter-actions{grid-column:1/-1; display:flex; gap:8px; justify-content:flex-end}
+
+/* ŚRODEK – wszystko POD SOBĄ */
+.details{display:grid; grid-template-rows:auto auto 1fr; gap:16px; min-height:640px}
+.place{padding:14px 16px; border-radius:14px; background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06); font-weight:600}
+
+/* wąskie zakładki */
+.tabs{display:grid; gap:10px}
+.tabs>input{position:absolute; opacity:0; pointer-events:none}
+.tab-head{
+  display:flex; gap:8px; padding:6px;
+  border-radius:999px; border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.03);
+  justify-content:center;        /* było: flex-start */
+  width:100%;
+  margin-inline:auto;            /* pilsy na środek panelu */
+}
+.tab-head label{
+  cursor:pointer; padding:6px 14px; border-radius:999px; color:var(--muted); font-size:13px;
+  flex:1 1 0;            /* oba przyciski równe */
+  text-align:center;     /* tekst na środku */
+}
+#t1:checked ~ .tab-head label[for="t1"],
+#t2:checked ~ .tab-head label[for="t2"]{color:var(--text);
+  background:linear-gradient(90deg, rgba(51,195,255,.22), rgba(122,124,255,.22)); outline:1px solid rgba(51,195,255,.35)}
+
+.tab-body{position:relative}
+.tab-panel{display:none; height:220px; overflow:auto; padding:14px 16px; border-radius:14px;
+  border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.03)}
+#t1:checked ~ .tab-body #p1{display:block}
+#t2:checked ~ .tab-body #p2{display:block}
+
+/* niski pasek zdjęć */
+.photo-strip{display:grid; gap:10px; grid-auto-flow:column; grid-auto-columns:minmax(160px,1fr);
+  height:160px; overflow:auto; scroll-snap-type:x mandatory; padding:8px; border-radius:14px;
+  border:var(--border); background:rgba(255,255,255,.03)}
+.photo{border-radius:12px; border:1px solid rgba(255,255,255,.07); scroll-snap-align:center;
+  overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted); cursor:pointer}
+.photo img{width:100%; height:100%; object-fit:cover; display:block}
+
+/* długi wąski przycisk */
+.add-wide{margin-top:auto; width:100%; padding:12px 16px; border-radius:12px; border:1px solid rgba(51,195,255,.35);
+  background:rgba(51,195,255,.12); color:var(--text); cursor:pointer}
+
+/* PRAWA kolumna */
+.right{display:flex; flex-direction:column; min-height:640px}
+.right .list{flex:1}
+.right .actions-fixed{margin-top:auto; display:flex}
+.right .gen-btn{padding:10px 14px; border-radius:10px; border:1px solid rgba(122,124,255,.35);
+  background:rgba(122,124,255,.12); color:var(--text); cursor:pointer}
+
+/* Lightbox */
+.lightbox{position:fixed; inset:0; background:rgba(0,0,0,.9); display:none; align-items:center; justify-content:center; z-index:9999}
+.lightbox.open{display:flex}
+.lightbox img{max-width:min(92vw,1600px); max-height:92vh; border-radius:12px}
+.lightbox .close{position:absolute; top:16px; right:16px; background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.25); color:#fff; padding:8px 12px; border-radius:10px; cursor:pointer}
+</style>
+</head>
+<body>
+
+<main class="app">
+  <!-- LEWA -->
+  <section class="panel left">
+    <h2>Baza awarii</h2>
+    <div class="list" id="allList"></div>
+
+    <div class="filters-wrap">
+      <div class="toolbar-row">
+        <button class="btn toggle" id="sortBtn">Sortuj ↓ data</button>
+        <button class="btn toggle" data-machine="KBA">KBA</button>
+        <button class="btn toggle" data-line="L2">L2</button>
+        <button class="btn toggle" data-line="L3">L3</button>
+        <button class="btn toggle" data-machine="DUR">DUR</button>
+        <button class="btn toggle" data-machine="INTRO">INTRO</button>
+      </div>
+
+      <div class="filters">
+        <label><span>Data od</span><input type="date" id="fFrom" placeholder="dd.mm.rrrr"></label>
+        <label><span>Data do</span><input type="date" id="fTo" placeholder="dd.mm.rrrr"></label>
+        <label><span>Miejsce / segment</span><input type="text" id="fPlace" placeholder="np. falcownik"></label>
+        <!-- ZAMIANA KOLEJNOŚCI: najpierw Kod, potem Fragment -->
+        <label><span>Kod błędu</span><input type="text" id="fErr" placeholder="np. E42"></label>
+        <label style="grid-column:1/-1"><span>Fragment opisu</span><input type="text" id="fText" placeholder="szukaj w treści"></label>
+
+        <div class="filter-actions">
+          <button class="btn accent" id="applyBtn">Szukaj</button>
+          <button class="btn ghost" id="clearBtn">Wyczyść</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ŚRODEK: pionowy układ -->
+  <section class="panel details">
+    <h2>Szczegóły zgłoszenia</h2>
+
+    <div id="place" class="place">Wybierz zgłoszenie z listy po lewej.</div>
+
+    <!-- wąskie zakładki -->
+    <div class="tabs">
+      <input type="radio" id="t1" name="tabs" checked>
+      <input type="radio" id="t2" name="tabs">
+      <div class="tab-head">
+        <label for="t1">Opis operatora</label>
+        <label for="t2">Co zrobił serwisant</label>
+      </div>
+
+      <!-- DUŻE POLE OPISU -->
+      <div class="tab-body">
+        <div id="p1" class="tab-panel"></div>
+        <div id="p2" class="tab-panel"></div>
+      </div>
+    </div>
+
+    <!-- NISKI PASEK ZDJĘĆ -->
+    <aside id="photos" class="photo-strip" aria-label="Zdjęcia"></aside>
+
+    <!-- DŁUGI PRZYCISK -->
+    <button class="add-wide" id="addBtn" disabled>Dodaj do raportu</button>
+  </section>
+
+  <!-- PRAWA -->
+  <section class="panel right">
+    <h2>Wybrane do raportu</h2>
+    <div class="list" id="pickedList"><div class="empty">Brak pozycji</div></div>
+    <div class="actions-fixed"><button class="gen-btn" id="genBtn" disabled>Generuj raport</button></div>
+  </section>
+</main>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia">
+  <button class="close" id="lbClose" aria-label="Zamknij">Zamknij</button>
+  <img id="lbImg" alt="">
+</div>
+
+<script>
+/* MOCK DANYCH */
+const ALL=[
+  {id:1,title:"KBA Compacta 818 — sekcja 3 — błąd E42",meta:"Zgłoszono: 2025-01-05 12:04 | Operator: J.D.",status:"open",place:"KBA C818 → Sekcja 3 → Kod: E42",machine:"KBA",line:"L3",error:"E42",date:"2025-01-05",op:"Podczas startu sekcji 3 pojawia się błąd E42. Maszyna nie pobiera wstęgi z odwijaka. Po skasowaniu błąd wraca natychmiast. Podejrzenie czujnika prędkości rolki prowadzącej.",svc:"Wymieniono czujnik prędkości. Dokręcono rolkę, smarowanie łożysk. Test 30 min.",photos:["https://picsum.photos/1000/700?random=11","https://picsum.photos/1000/700?random=12"]},
+  {id:2,title:"Roland Lithoman IV — odwijak A — czujnik taśmy",meta:"Zgłoszono: 2025-01-04 10:31 | Operator: A.K.",status:"open",place:"Roland Lithoman IV → Odwijak A → Czujnik taśmy",machine:"KBA",line:"L2",error:"E07",date:"2025-01-04",op:"Czujnik taśmy gubi impuls. Pasek zatrzymuje się.",svc:"Korekta prowadzenia przewodu. Wymiana czujnika. Test 2 h.",photos:["https://picsum.photos/1000/700?random=21"]},
+  {id:3,title:"DUR — kompresor Atlas — wymiana filtra oleju",meta:"Zamknięto: 2025-01-03 09:12 | Serwis: M.S.",status:"ok",place:"Kompresor Atlas → Filtr oleju",machine:"DUR",line:"L2",error:"",date:"2025-01-03",op:"Wzrost temperatury o 15°C. Filtr zatarasowany.",svc:"Wymieniono filtr, temp. w normie.",photos:[]}
+];
+
+const $allList=document.getElementById('allList');
+const $pickedList=document.getElementById('pickedList');
+const $place=document.getElementById('place');
+const $p1=document.getElementById('p1');
+const $p2=document.getElementById('p2');
+const $photos=document.getElementById('photos');
+const $addBtn=document.getElementById('addBtn');
+const $genBtn=document.getElementById('genBtn');
+
+/* Filtry i stan */
+const F={from:null,to:null,place:"",text:"",err:"",machine:new Set(),line:new Set()};
+let selectedId=null; const picked=[];
+
+/* Render lista */
+function renderList(){
+  let q=[...ALL].sort((a,b)=>(a.status!=="ok"?0:1)-(b.status!=="ok"?0:1)||new Date(b.date)-new Date(a.date));
+  if(F.machine.size) q=q.filter(t=>F.machine.has(t.machine));
+  if(F.line.size) q=q.filter(t=>F.line.has(t.line));
+  if(F.from) q=q.filter(t=> new Date(t.date)>=new Date(F.from));
+  if(F.to) q=q.filter(t=> new Date(t.date)<=new Date(F.to));
+  if(F.place) q=q.filter(t=>(t.place||"").toLowerCase().includes(F.place.toLowerCase()));
+  if(F.err) q=q.filter(t=>(t.error||"").toLowerCase().includes(F.err.toLowerCase()));
+  if(F.text) q=q.filter(t=>(t.op+t.svc).toLowerCase().includes(F.text.toLowerCase()));
+
+  $allList.innerHTML='';
+  q.forEach((t,i)=>{
+    const el=document.createElement('article');
+    el.className='item'+(t.id===selectedId?' active':''); el.dataset.id=t.id;
+    el.innerHTML=`<div><div class="title">${t.title}</div><div class="meta">${t.meta}</div></div>
+                  <div><span class="badge ${t.status==='ok'?'ok':'open'}">${t.status==='ok'?'zamknięte':'otwarte'}</span></div>`;
+    el.addEventListener('click',()=>select(t.id));
+    $allList.appendChild(el);
+    if(i===0 && selectedId==null) select(t.id);
+  });
+}
+
+function select(id){
+  selectedId=id;
+  [...$allList.children].forEach(n=>n.classList.toggle('active', Number(n.dataset.id)===id));
+  const t=ALL.find(x=>x.id===id); if(!t) return;
+  $place.textContent="Miejsce: "+t.place;
+  $p1.innerHTML=t.op||''; $p2.innerHTML=t.svc||'';
+  $addBtn.disabled=false;
+
+  $photos.innerHTML='';
+  if(!t.photos.length){
+    const empty=document.createElement('div'); empty.className='photo'; empty.textContent='Brak zdjęć'; $photos.appendChild(empty);
+  }else{
+    t.photos.forEach(src=>{
+      const fig=document.createElement('figure'); fig.className='photo';
+      fig.innerHTML=`<img src="${src}" alt="">`;
+      fig.addEventListener('click',()=>openLightbox(src));
+      $photos.appendChild(fig);
+    });
+  }
+}
+
+function renderPicked(){
+  $pickedList.innerHTML='';
+  if(!picked.length){ $pickedList.innerHTML='<div class="empty">Brak pozycji</div>'; $genBtn.disabled=true; return; }
+  picked.forEach(t=>{
+    const el=document.createElement('article'); el.className='item';
+    el.innerHTML=`<div><div class="title">${t.title}</div><div class="meta">${t.meta}</div></div>
+      <div><button class="badge btn-x" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);cursor:pointer">usuń</button></div>`;
+    el.querySelector('button').addEventListener('click',()=>{
+      const i=picked.findIndex(x=>x.id===t.id); if(i>=0) picked.splice(i,1); renderPicked();
+    });
+    $pickedList.appendChild(el);
+  });
+  $genBtn.disabled=false;
+}
+
+/* Togglery */
+function toggleBtn(btn, group){
+  btn.classList.toggle('active');
+  const val=btn.dataset[group]; if(!val) return;
+  const set=F[group]; if(btn.classList.contains('active')) set.add(val); else set.delete(val);
+  renderList();
+}
+document.querySelectorAll('[data-machine]').forEach(b=> b.addEventListener('click',()=>toggleBtn(b,'machine')));
+document.querySelectorAll('[data-line]').forEach(b=> b.addEventListener('click',()=>toggleBtn(b,'line')));
+
+document.getElementById('applyBtn').addEventListener('click', ()=>{
+  F.from=document.getElementById('fFrom').value||null;
+  F.to=document.getElementById('fTo').value||null;
+  F.place=document.getElementById('fPlace').value;
+  F.err=document.getElementById('fErr').value;
+  F.text=document.getElementById('fText').value;
+  renderList();
+});
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  ['fFrom','fTo','fPlace','fErr','fText'].forEach(id=>document.getElementById(id).value='');
+  F.from=F.to=null; F.place=F.text=F.err=""; F.machine.clear(); F.line.clear();
+  document.querySelectorAll('.btn.toggle.active').forEach(b=>b.classList.remove('active'));
+  renderList();
+});
+
+/* Dodaj do raportu */
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const t=ALL.find(x=>x.id===selectedId); if(!t) return;
+  if(!picked.some(x=>x.id===t.id)) picked.push(t);
+  renderPicked();
+});
+
+/* Lightbox */
+const $lb=document.getElementById('lightbox');
+const $lbImg=document.getElementById('lbImg');
+document.getElementById('lbClose').addEventListener('click',()=>{$lb.classList.remove('open'); $lbImg.src='';});
+$lb.addEventListener('click',e=>{ if(e.target===$lb){ $lb.classList.remove('open'); $lbImg.src=''; }});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ $lb.classList.remove('open'); $lbImg.src=''; }});
+function openLightbox(src){ $lbImg.src=src; $lb.classList.add('open'); }
+
+/* Start */
+renderList(); renderPicked();
+</script>
+</body>
+</html>
