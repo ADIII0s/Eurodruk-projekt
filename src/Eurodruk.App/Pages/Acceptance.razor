@@ -1,0 +1,102 @@
+@page "/acceptance"
+@inject IAcceptanceService AcceptanceService
+
+<h1>Panel akceptacji</h1>
+<div class="grid-2" style="margin-top:16px">
+    <section class="page-panel">
+        <h2>Do akceptacji</h2>
+        <div class="table-list">
+            @if (tickets is null)
+            {
+                <p class="empty-state">Ładowanie…</p>
+            }
+            else if (!tickets.Any())
+            {
+                <p class="empty-state">Brak zgłoszeń.</p>
+            }
+            else
+            {
+                foreach (var ticket in tickets)
+                {
+                    <button class="ticket-card" @onclick="() => Select(ticket)" style="text-align:left">
+                        <div class="ticket-card__meta">@ticket.ClosedAt?.ToLocalTime():dd.MM HH:mm • @ticket.MachineName</div>
+                        <strong>@ticket.Title</strong>
+                        <p>@ticket.ServiceDescription</p>
+                        <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
+                    </button>
+                }
+            }
+        </div>
+    </section>
+
+    <section class="page-panel">
+        <h2>Szczegóły</h2>
+        @if (selected is null)
+        {
+            <p class="empty-state">Wybierz zgłoszenie z listy.</p>
+        }
+        else
+        {
+            <article>
+                <p><strong>Maszyna:</strong> @selected.MachineName (@selected.ProductionLine)</p>
+                <p><strong>Opis operatora:</strong> @selected.OperatorDescription</p>
+                <p><strong>Opis serwisu:</strong> @selected.ServiceDescription</p>
+                <InputTextArea @bind-Value="decisionNotes" placeholder="Uwagi kierownika" />
+                <div class="action-row" style="margin-top:12px">
+                    <button class="primary" @onclick="() => Decide(true)">Akceptuj</button>
+                    <button @onclick="() => Decide(false)">Odrzuć</button>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(decisionToast))
+                {
+                    <div class="toast">@decisionToast</div>
+                }
+            </article>
+        }
+    </section>
+</div>
+
+@code {
+    private IReadOnlyList<WorkshopTicket>? tickets;
+    private WorkshopTicket? selected;
+    private string decisionNotes = string.Empty;
+    private string? decisionToast;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        tickets = await AcceptanceService.GetPendingAsync();
+    }
+
+    private void Select(WorkshopTicket ticket)
+    {
+        selected = ticket;
+        decisionNotes = string.Empty;
+        decisionToast = null;
+    }
+
+    private async Task Decide(bool accepted)
+    {
+        if (selected is null)
+        {
+            return;
+        }
+
+        await AcceptanceService.SaveDecisionAsync(selected.Id, accepted, decisionNotes, "Kierownik");
+        decisionToast = accepted ? "Zaakceptowano" : "Odrzucono";
+        await Load();
+    }
+
+    private string GetStatusClass(TicketStatus status) => status switch
+    {
+        TicketStatus.Open => "status-open",
+        TicketStatus.InProgress => "status-progress",
+        TicketStatus.Closed => "status-closed",
+        TicketStatus.Accepted => "status-closed",
+        TicketStatus.Rejected => "status-rejected",
+        _ => string.Empty
+    };
+}

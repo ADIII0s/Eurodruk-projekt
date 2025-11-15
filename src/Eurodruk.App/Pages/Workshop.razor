@@ -1,0 +1,246 @@
+@page "/workshop"
+@inject ITicketService TicketService
+
+<h1>Panel warsztatu</h1>
+<div class="grid-2" style="margin-top:16px">
+    <section class="page-panel">
+        <h2>Baza awarii</h2>
+        <div class="filters">
+            <label>
+                <span>Status</span>
+                <select @bind="filterModel.Status">
+                    <option value="">Dowolny</option>
+                    @foreach (var status in Enum.GetValues<TicketStatus>())
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </select>
+            </label>
+            <label>
+                <span>Maszyna</span>
+                <input @bind="filterModel.Machine" placeholder="np. KBA" />
+            </label>
+            <label>
+                <span>Linia</span>
+                <input @bind="filterModel.Line" placeholder="np. L2" />
+            </label>
+            <label>
+                <span>Data od</span>
+                <input type="date" @bind="filterModel.From" />
+            </label>
+            <label>
+                <span>Data do</span>
+                <input type="date" @bind="filterModel.To" />
+            </label>
+            <label style="grid-column:1/-1">
+                <span>Szukaj w treści</span>
+                <input @bind="filterModel.Text" placeholder="opis, operator" />
+            </label>
+            <div class="actions">
+                <button class="btn" @onclick="ApplyFilters">Szukaj</button>
+                <button class="btn" @onclick="ClearFilters">Wyczyść</button>
+            </div>
+        </div>
+
+        <div class="table-list" style="margin-top:24px">
+            @if (tickets is null)
+            {
+                <p class="empty-state">Ładowanie…</p>
+            }
+            else if (!tickets.Any())
+            {
+                <p class="empty-state">Brak zgłoszeń.</p>
+            }
+            else
+            {
+                foreach (var ticket in tickets)
+                {
+                    <button class="ticket-card" @onclick="() => SelectTicket(ticket.Id)" style="text-align:left">
+                        <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm • @ticket.MachineName • Linia @ticket.ProductionLine</div>
+                        <strong>@ticket.Title</strong>
+                        <div>@ticket.OperatorDescription</div>
+                        <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
+                    </button>
+                }
+            }
+        </div>
+    </section>
+
+    <section class="page-panel">
+        <h2>Szczegóły zgłoszenia</h2>
+        @if (selectedTicket is null)
+        {
+            <p class="empty-state">Wybierz zgłoszenie aby zobaczyć szczegóły.</p>
+        }
+        else
+        {
+            <article>
+                <div class="tag-list">
+                    <span class="tag">Maszyna: @selectedTicket.MachineName</span>
+                    <span class="tag">Linia: @selectedTicket.ProductionLine</span>
+                    <span class="tag">Lokalizacja: @selectedTicket.Location</span>
+                    <span class="tag">Kod: @(string.IsNullOrWhiteSpace(selectedTicket.ErrorCode) ? "—" : selectedTicket.ErrorCode)</span>
+                </div>
+                <p class="ticket-card__meta" style="margin-top:12px">Operator: @selectedTicket.OperatorName</p>
+                <h3>Opis operatora</h3>
+                <p>@selectedTicket.OperatorDescription</p>
+                <h3>Opis serwisu</h3>
+                <p>@(string.IsNullOrWhiteSpace(selectedTicket.ServiceDescription) ? "Brak danych" : selectedTicket.ServiceDescription)</p>
+
+                <h3>Historia</h3>
+                <ul>
+                    @foreach (var action in selectedTicket.Actions.OrderByDescending(a => a.CreatedAt))
+                    {
+                        <li><strong>@action.Author</strong> – @action.CreatedAt.ToLocalTime():g<br />@action.Body</li>
+                    }
+                </ul>
+
+                <h3>Zdjęcia</h3>
+                <div class="photo-rail">
+                    @if (selectedTicket.Photos.Any())
+                    {
+                        foreach (var photo in selectedTicket.Photos)
+                        {
+                            <img src="@photo.Url" alt="@photo.Caption" />
+                        }
+                    }
+                    else
+                    {
+                        <span class="empty-state">Brak zdjęć</span>
+                    }
+                </div>
+                <InputFile OnChange="UploadPhoto" />
+
+                <div class="action-row" style="margin-top:16px">
+                    <button class="primary" @onclick="StartWork">Rozpocznij pracę</button>
+                    <button @onclick="() => showCloseDialog = true">Zamknij zgłoszenie</button>
+                </div>
+            </article>
+        }
+    </section>
+</div>
+
+@if (showCloseDialog && selectedTicket is not null)
+{
+    <div class="dialog-backdrop">
+        <div class="dialog">
+            <header>
+                <h3>Zamknij zgłoszenie</h3>
+                <button @onclick="() => showCloseDialog = false">×</button>
+            </header>
+            <textarea style="width:100%" @bind="closeNotes" placeholder="Opis wykonanych czynności"></textarea>
+            <footer>
+                <button @onclick="() => showCloseDialog = false">Anuluj</button>
+                <button class="primary" @onclick="ConfirmClose">Zamknij</button>
+            </footer>
+        </div>
+    </div>
+}
+
+@code {
+    private FilterModel filterModel = new();
+    private IReadOnlyList<WorkshopTicket>? tickets;
+    private WorkshopTicket? selectedTicket;
+    private bool showCloseDialog;
+    private string closeNotes = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTickets();
+    }
+
+    private async Task LoadTickets()
+    {
+        var filter = new TicketFilter(filterModel.Status, filterModel.Machine, filterModel.Line, filterModel.From, filterModel.To, filterModel.Text);
+        tickets = await TicketService.GetTicketsAsync(filter);
+        if (selectedTicket is not null)
+        {
+            selectedTicket = await TicketService.GetTicketAsync(selectedTicket.Id);
+        }
+        StateHasChanged();
+    }
+
+    private async Task ApplyFilters()
+    {
+        await LoadTickets();
+    }
+
+    private async Task ClearFilters()
+    {
+        filterModel = new();
+        await LoadTickets();
+    }
+
+    private async Task SelectTicket(int id)
+    {
+        selectedTicket = await TicketService.GetTicketAsync(id);
+    }
+
+    private string GetStatusClass(TicketStatus status) => status switch
+    {
+        TicketStatus.Open => "status-open",
+        TicketStatus.InProgress => "status-progress",
+        TicketStatus.Closed => "status-closed",
+        TicketStatus.Accepted => "status-closed",
+        TicketStatus.Rejected => "status-rejected",
+        _ => string.Empty
+    };
+
+    private async Task StartWork()
+    {
+        if (selectedTicket is null)
+        {
+            return;
+        }
+
+        await TicketService.StartWorkAsync(selectedTicket.Id, "Serwis");
+        await SelectTicket(selectedTicket.Id);
+        await LoadTickets();
+    }
+
+    private async Task ConfirmClose()
+    {
+        if (selectedTicket is null)
+        {
+            return;
+        }
+
+        await TicketService.CloseTicketAsync(selectedTicket.Id, closeNotes, "Serwis");
+        showCloseDialog = false;
+        closeNotes = string.Empty;
+        await SelectTicket(selectedTicket.Id);
+        await LoadTickets();
+    }
+
+    private async Task UploadPhoto(InputFileChangeEventArgs e)
+    {
+        if (selectedTicket is null)
+        {
+            return;
+        }
+
+        var file = e.File;
+        if (file is null)
+        {
+            return;
+        }
+
+        using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+        var dataUrl = $"data:{file.ContentType};base64,{base64}";
+        var photo = await TicketService.AddPhotoAsync(selectedTicket.Id, dataUrl, file.Name, "Serwis");
+        selectedTicket.Photos.Add(photo);
+    }
+
+    private sealed class FilterModel
+    {
+        public TicketStatus? Status { get; set; }
+        public string? Machine { get; set; }
+        public string? Line { get; set; }
+        public DateTime? From { get; set; }
+        public DateTime? To { get; set; }
+        public string? Text { get; set; }
+    }
+}
