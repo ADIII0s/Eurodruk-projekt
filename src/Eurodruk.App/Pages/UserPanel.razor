@@ -1,59 +1,148 @@
 @page "/user"
 @inject ITicketService TicketService
 @inject IUserTicketService UserTicketService
+@using System.Linq
 
-<h1>Panel użytkownika</h1>
-<section class="page-panel">
-    <EditForm Model="form" OnValidSubmit="SubmitTicket" class="ticket-form">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-        <InputText @bind-Value="form.Title" placeholder="Tytuł zgłoszenia" />
-        <div class="grid-2">
-            <InputText @bind-Value="form.ErrorCode" placeholder="Kod błędu" />
-            <InputText @bind-Value="form.MachineName" placeholder="Maszyna" />
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Panel użytkownika</p>
+        <h1>Jaśniejszy panel zgłoszeń</h1>
+        <p class="lead">Większe okna, mocniejszy kontrast i selektor segmentu maszyny z podlistami góra/dół pomagają operatorom zgłosić usterkę w kilka sekund.</p>
+        <div class="chip-row">
+            <span class="chip">Łącznie: @TotalCount</span>
+            <span class="chip chip-accent">Otwarte: @OpenCount</span>
+            <span class="chip chip-quiet">Zamknięte: @ClosedCount</span>
         </div>
-        <div class="grid-2">
-            <InputText @bind-Value="form.ProductionLine" placeholder="Linia" />
-            <InputText @bind-Value="form.Location" placeholder="Lokalizacja" />
-        </div>
-        <InputText @bind-Value="form.OperatorName" placeholder="Operator" />
-        <InputTextArea @bind-Value="form.OperatorDescription" placeholder="Opis" />
-        <div class="action-row">
-            <button class="primary" type="submit">Zgłoś usterkę</button>
-        </div>
-    </EditForm>
-    @if (!string.IsNullOrEmpty(successMessage))
-    {
-        <div class="toast">@successMessage</div>
-    }
-</section>
-
-<section class="page-panel" style="margin-top:24px">
-    <h2>Ostatnie zgłoszenia</h2>
-    <div class="table-list">
-        @if (recentTickets is null)
-        {
-            <p class="empty-state">Ładowanie…</p>
-        }
-        else if (!recentTickets.Any())
-        {
-            <p class="empty-state">Brak zgłoszeń.</p>
-        }
-        else
-        {
-            foreach (var ticket in recentTickets)
-            {
-                <div class="ticket-card">
-                    <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM HH:mm • @ticket.MachineName</div>
-                    <strong>@ticket.Title</strong>
-                    <p>@ticket.OperatorDescription</p>
-                    <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
-                    <button style="margin-top:10px" @onclick="() => Select(ticket.Id)">Szczegóły</button>
-                </div>
-            }
-        }
     </div>
-</section>
+    <div class="header-note">
+        <p><strong>Szybka podpowiedź:</strong><br /> Kliknij segment i wybierz wariant góra/dół – pole lokalizacji uzupełni się automatycznie.</p>
+    </div>
+</div>
+
+<div class="user-grid">
+    <section class="page-panel user-form-panel">
+        <h2>Nowe zgłoszenie</h2>
+        <p class="muted">Pola są większe i jaśniejsze – wypełnij je i wyślij zgłoszenie do warsztatu.</p>
+        <EditForm Model="form" OnValidSubmit="SubmitTicket" class="ticket-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="title">Tytuł zgłoszenia</label>
+                    <InputText id="title" class="control" @bind-Value="form.Title" placeholder="np. Brak rejestru sekcji 3" />
+                </div>
+                <div class="form-field">
+                    <label for="error">Kod błędu</label>
+                    <InputText id="error" class="control" @bind-Value="form.ErrorCode" placeholder="np. E42" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="machine">Maszyna</label>
+                    <InputText id="machine" class="control" @bind-Value="form.MachineName" placeholder="np. KBA C818" />
+                </div>
+                <div class="form-field">
+                    <label for="line">Linia</label>
+                    <InputText id="line" class="control" @bind-Value="form.ProductionLine" placeholder="np. Linia 1" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="segment">Segment na maszynie</label>
+                    <div class="segment-picker @(showSegmentMenu ? "open" : string.Empty)">
+                        <button type="button" class="segment-trigger" id="segment" @onclick="ToggleSegmentMenu">
+                            <span>@(string.IsNullOrWhiteSpace(form.Location) ? "Wybierz segment" : form.Location)</span>
+                            <span aria-hidden="true">▾</span>
+                        </button>
+                        <div class="segment-menu">
+                            <button type="button" @onclick="() => SelectSegment(string.Empty)">Wyczyść wybór</button>
+                            @foreach (var option in segmentOptions)
+                            {
+                                if (option.Variants.Any())
+                                {
+                                    <div class="segment-option has-sub" @onclick:stopPropagation="true">
+                                        <span>@option.Label</span>
+                                        <div class="segment-submenu">
+                                            @foreach (var variant in option.Variants)
+                                            {
+                                                <button type="button" @onclick="() => SelectSegment($"{option.Label}, {variant.ToLower()}")">@variant</button>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button class="segment-option" type="button" @onclick="() => SelectSegment(option.Label)">@option.Label</button>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="operator">Operator</label>
+                    <InputText id="operator" class="control" @bind-Value="form.OperatorName" placeholder="np. Jan D." />
+                </div>
+            </div>
+            <div class="form-field">
+                <label for="description">Opis zdarzenia</label>
+                <InputTextArea id="description" class="control" @bind-Value="form.OperatorDescription" placeholder="Co się wydarzyło?" />
+            </div>
+            <div class="action-row">
+                <button class="primary" type="submit">Zgłoś usterkę</button>
+            </div>
+        </EditForm>
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="toast">@successMessage</div>
+        }
+    </section>
+
+    <section class="page-panel user-list-panel">
+        <div class="list-header">
+            <div>
+                <p class="eyebrow">Ostatnie zgłoszenia</p>
+                <h2>Historia usterek</h2>
+                <p class="muted">Większe karty i kontrast pomagają szybko znaleźć właściwe zgłoszenie.</p>
+            </div>
+        </div>
+        <div class="table-list">
+            @if (recentTickets is null)
+            {
+                <p class="empty-state">Ładowanie…</p>
+            }
+            else if (!recentTickets.Any())
+            {
+                <p class="empty-state">Brak zgłoszeń.</p>
+            }
+            else
+            {
+                foreach (var ticket in recentTickets)
+                {
+                    <div class="ticket-card ticket-card--wide">
+                        <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM HH:mm • @ticket.MachineName • @ticket.ProductionLine</div>
+                        <div class="ticket-card__top">
+                            <div>
+                                <strong>@ticket.Title</strong>
+                                <p class="muted">@ticket.OperatorDescription</p>
+                            </div>
+                            <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(ticket.Location))
+                        {
+                            <div class="chip-row" style="margin-top:6px">
+                                <span class="chip chip-quiet">Segment: @ticket.Location</span>
+                                <span class="chip chip-accent">Kod: @(string.IsNullOrWhiteSpace(ticket.ErrorCode) ? "—" : ticket.ErrorCode)</span>
+                            </div>
+                        }
+                        <div class="card-actions">
+                            <button @onclick="() => Select(ticket.Id)">Szczegóły</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+</div>
 
 @if (selectedTicket is not null)
 {
@@ -76,6 +165,31 @@
     private IReadOnlyList<WorkshopTicket>? recentTickets;
     private WorkshopTicket? selectedTicket;
     private string? successMessage;
+    private bool showSegmentMenu;
+    private int TotalCount => recentTickets?.Count ?? 0;
+    private int OpenCount => recentTickets?.Count(t => t.Status is TicketStatus.Open or TicketStatus.InProgress) ?? 0;
+    private int ClosedCount => recentTickets?.Count(t => t.Status is TicketStatus.Closed or TicketStatus.Accepted or TicketStatus.Rejected) ?? 0;
+    private readonly List<SegmentOption> segmentOptions = new()
+    {
+        new("Odwijak"),
+        new("Zespół naprężający"),
+        new("Agregat czarny", new[] { "Góra", "Dół" }),
+        new("Agregat cyjan", new[] { "Góra", "Dół" }),
+        new("Agregat magenta", new[] { "Góra", "Dół" }),
+        new("Agregat żółty", new[] { "Góra", "Dół" }),
+        new("UW"),
+        new("Suszarka"),
+        new("Chłodnik"),
+        new("Sylikon"),
+        new("Cięcie wstęgi"),
+        new("Przerzutki i registry"),
+        new("Klejownik"),
+        new("Odcięcie głowa i nogi"),
+        new("Odcięcie poprzeczne"),
+        new("Zszywarka"),
+        new("Rozdzielacz"),
+        new("Wykładaki", new[] { "Góra", "Dół" })
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,6 +199,17 @@
     private async Task LoadTickets()
     {
         recentTickets = await UserTicketService.GetRecentAsync();
+    }
+
+    private void ToggleSegmentMenu()
+    {
+        showSegmentMenu = !showSegmentMenu;
+    }
+
+    private void SelectSegment(string value)
+    {
+        form.Location = value;
+        showSegmentMenu = false;
     }
 
     private async Task SubmitTicket()
@@ -132,5 +257,10 @@
 
         [Required]
         public string OperatorDescription { get; set; } = string.Empty;
+    }
+
+    private sealed record SegmentOption(string Label, IReadOnlyList<string> Variants)
+    {
+        public SegmentOption(string label) : this(label, Array.Empty<string>()) { }
     }
 }

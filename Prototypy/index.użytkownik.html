@@ -6,119 +6,96 @@
 <title>Panel użytkownika – usterki</title>
 <style>
 :root{
-  --bg:#0f1216; --panel:#141a21; --panel-2:#0f141b;
-  --text:#e7edf5; --muted:#9fb0c2; --accent:#33c3ff;
-  --radius:28px; --r-sm:16px;
-  --border:1px solid rgba(255,255,255,.06);
-  --shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+  --bg:#151a23; --panel:#1f2735; --panel-2:#181f2b;
+  --text:#f3f7fd; --muted:#c2ccd6; --accent:#33c3ff;
+  --accent-2:#7a7cff; --ok:#44e0a2; --warn:#ffb020;
+  --radius:22px; --shadow:0 14px 30px rgba(0,0,0,.38), 0 1px 0 rgba(255,255,255,.05) inset;
+  --border:1px solid rgba(255,255,255,.12);
 }
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1319);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto}
-
-.container{max-width:1160px;margin:24px auto;padding:20px;background:var(--panel);border:var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-h1{margin:0 0 14px;text-align:center;font:700 15px/1.2 system-ui;color:#cfe3f6}
-
-/* formularz */
-form.headerbar{
-  display:grid;grid-template-columns:160px 1fr 1fr 1.2fr;gap:12px;
-  align-items:stretch;background:var(--panel-2);border:var(--border);border-radius:var(--r-sm);padding:12px
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0f131b 0%, var(--bg) 100%);
+  color:var(--text);
+  font:15px/1.55 system-ui,Segoe UI,Roboto,Ubuntu,Arial;
 }
-button.cta{
-  border:1px solid rgba(51,195,255,.35);border-radius:12px;background:linear-gradient(180deg,#173042,#122433);
-  color:#d7f2ff;font:700 13px/1.1 system-ui;text-transform:uppercase;cursor:pointer
-}
-.field{display:flex;flex-direction:column;gap:6px}
-.label{font:600 12px/1;color:#cfe3f6}
-.input{width:100%;padding:10px 12px;border-radius:12px;color:var(--text);background:linear-gradient(180deg,#10161d,#0e141a);border:var(--border);outline:none}
-.input::placeholder{color:rgba(255,255,255,.35)}
-.input:focus{box-shadow:0 0 0 2px rgba(51,195,255,.35) inset}
-@media (max-width:980px){form.headerbar{grid-template-columns:1fr}}
 
-/* lista */
-.section{margin-top:18px;padding:14px;border-radius:20px;border:var(--border);background:#121820}
-.section h2{margin:0 0 10px;font:600 15px/1.2 system-ui;color:#d9e7f6}
-.list-scroll{max-height:420px;overflow:auto;padding-right:2px}
-.list-scroll::-webkit-scrollbar{width:10px}
-.list-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:8px}
+.shell{max-width:1280px;margin:0 auto;padding:28px;display:flex;flex-direction:column;gap:18px}
+.panel{background:radial-gradient(120% 120% at 0% 0%,#1a2130 0%,var(--panel) 45%,var(--panel-2) 100%);border:var(--border);border-radius:calc(var(--radius) + 6px);box-shadow:var(--shadow);padding:24px}
 
-.list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
-.row{
-  display:grid;grid-template-columns:1fr 1fr 1.2fr 120px;gap:12px;
-  padding:12px;border-radius:14px;background:linear-gradient(180deg,#0f141b,#0d1218);
-  border:1px solid rgba(255,255,255,.06);cursor:pointer;position:relative
-}
-.row:hover{outline:1px solid rgba(255,255,255,.12)}
-.cell{padding:10px 12px;border-radius:10px;background:#0f171f;border:1px solid rgba(255,255,255,.05)}
+.hero{display:grid;grid-template-columns:1.2fr 0.8fr;gap:18px;align-items:center}
+.hero h1{margin:0 0 10px;font-size:24px;letter-spacing:.04em}
+.lead{margin:0;color:var(--muted);line-height:1.6}
+.statbox{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
+.stat{background:rgba(255,255,255,.05);border:var(--border);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.stat .value{font:700 18px/1 system-ui}
+.stat .label{color:var(--muted);font-size:13px}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{display:flex;flex-direction:column;gap:8px}
+.label{font-size:13px;color:var(--muted);letter-spacing:.03em;text-transform:uppercase}
+.input,.textarea{width:100%;padding:12px 14px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.textarea{min-height:120px;resize:vertical}
+.input:focus,.textarea:focus,.segment-trigger:focus{outline:2px solid rgba(51,195,255,.45);}
+
+.cta{align-self:flex-start;padding:14px 18px;border-radius:16px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#0f1216;font-weight:700;letter-spacing:.05em;cursor:pointer;box-shadow:0 10px 30px rgba(51,195,255,.25)}
+
+.segment-field{display:flex;flex-direction:column;gap:8px}
+.segment-picker{position:relative}
+.segment-trigger{width:100%;text-align:left;border-radius:18px;padding:12px 14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:var(--text);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.segment-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--panel);border:var(--border);border-radius:18px;box-shadow:var(--shadow);padding:8px;display:none;z-index:40;max-height:320px;overflow:auto}
+.segment-picker.open .segment-menu{display:grid;grid-template-columns:1fr;gap:6px}
+.segment-menu button,.segment-option{width:100%;text-align:left;border:none;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);color:var(--text);cursor:pointer}
+.segment-menu button:hover,.segment-option:hover{background:rgba(255,255,255,.08)}
+.segment-option{position:relative;padding-right:90px}
+.segment-submenu{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:none;gap:6px}
+.segment-option:hover .segment-submenu{display:flex}
+.segment-submenu button{width:auto;padding:8px 10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);}
+
+.list-wrap{margin-top:6px}
+.list-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.list-header h2{margin:0;font-size:16px}
+.pill{display:inline-flex;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--muted);font-size:12px;letter-spacing:.04em}
+.list{margin-top:12px;display:grid;gap:10px}
+.row{display:grid;grid-template-columns:1fr 1fr 1.2fr 120px;gap:12px;padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);cursor:pointer}
+.row:hover{outline:1px solid rgba(51,195,255,.35)}
+.cell{padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.06)}
 .meta{color:var(--muted);font-size:12px;margin-top:4px}
 .status{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:#0f171f;font-weight:700}
-.status.open{color:#ffd58f;box-shadow:0 0 0 1px rgba(255,208,128,.2) inset}
-.status.closed{color:#9cd7ff;box-shadow:0 0 0 1px rgba(120,180,255,.2) inset}
-
-/* podświetlenie aktywnego wiersza przez globalne radio rX */
-#r1:checked ~ .container label[for="r1"],
-#r2:checked ~ .container label[for="r2"],
-#r3:checked ~ .container label[for="r3"],
-#r4:checked ~ .container label[for="r4"],
-#r5:checked ~ .container label[for="r5"],
-#r6:checked ~ .container label[for="r6"]{outline:1.5px solid rgba(51,195,255,.45)}
+.status.open{color:var(--warn);box-shadow:0 0 0 1px rgba(255,176,32,.3) inset}
+.status.closed{color:#9cd7ff;box-shadow:0 0 0 1px rgba(120,180,255,.25) inset}
 
 .dots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px}
 .dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16)}
 .dots span:nth-child(2){background:rgba(255,255,255,.28)}
 
-.bigbtn{
-  display:block;text-decoration:none;margin:18px auto 6px;width:min(680px,90%);padding:16px 18px;text-align:center;
-  border-radius:999px;background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
-  font:600 14px/1.1 system-ui;color:#cfe3f6
-}
+.bigbtn{display:block;text-decoration:none;margin:18px auto 6px;width:min(680px,90%);padding:16px 18px;text-align:center;border-radius:999px;background:linear-gradient(180deg,#1d2634,#161d29);border:var(--border);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);font:600 14px/1.1 system-ui;color:#cfe3f6}
 
-/* ===== Modal ===== */
+/* modal */
 .modal{position:fixed;inset:0;display:none}
 .modal:target{display:block}
-.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55)}
-.sheet{
-  position:relative;max-width:980px;margin:40px auto;padding:20px;background:var(--panel);border:var(--border);
-  border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.6)
-}
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.65)}
+.sheet{position:relative;max-width:980px;margin:40px auto;padding:22px;background:var(--panel);border:var(--border);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
 .close{position:absolute;top:10px;right:12px;font:700 20px/1 system-ui;color:#aac7dd;text-decoration:none}
-
-.detail h3{margin:0 0 12px;font:600 16px/1.2 system-ui}
 .place{background:var(--panel-2);border:var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px}
-
-/* układ: opis + zdjęcia */
 .split{display:grid;grid-template-columns:1fr 360px;gap:18px}
 @media (max-width:980px){.split{grid-template-columns:1fr}}
-.desc{min-width:0}
-
-/* zakładki nad opisem — ogólne */
 .tabs{display:block;margin:0 0 8px}
 .tabs input{display:none}
-.tabbar{display:flex;gap:8px}
-.tabbar label{
-  border:1px solid rgba(255,255,255,.08);background:#0f171f;color:#cfe3f6;
-  padding:6px 10px;border-radius:999px;font:600 12px;cursor:pointer;white-space:nowrap
-}
+.tabbar{display:flex;gap:8px;flex-wrap:wrap}
+.tabbar label{border:1px solid rgba(255,255,255,.1);background:#0f171f;color:#cfe3f6;padding:6px 10px;border-radius:999px;font:600 12px;cursor:pointer;white-space:nowrap}
 .tabs input:nth-of-type(1):checked ~ .tabbar label:nth-child(1),
-.tabs input:nth-of-type(2):checked ~ .tabbar label:nth-child(2){
-  background:linear-gradient(180deg,#1a2230,#151c28);
-  box-shadow:0 0 0 1.5px rgba(51,195,255,.35) inset;
-}
-.box{
-  background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);border-radius:14px;padding:14px;
-  min-height:160px;max-height:260px;overflow:auto
-}
+.tabs input:nth-of-type(2):checked ~ .tabbar label:nth-child(2){background:linear-gradient(180deg,#1a2230,#151c28);box-shadow:0 0 0 1.5px rgba(51,195,255,.35) inset;}
+.box{background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);border-radius:14px;padding:14px;min-height:160px;max-height:260px;overflow:auto}
 .tabs input:nth-of-type(1):checked ~ .txt .op{display:block}
 .tabs input:nth-of-type(2):checked ~ .txt .sv{display:block}
 .txt>div{display:none}
-
-/* zdjęcia */
 .photos{background:var(--panel-2);border:var(--border);border-radius:16px;padding:14px}
 .rail{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}
 .rail::-webkit-scrollbar{height:8px}
 .rail::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:8px}
 .rail img{display:block;width:120px;height:240px;object-fit:cover;border-radius:14px;border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 16px rgba(0,0,0,.35)}
-
-/* pokazanie panelu wg wybranego rX */
 .dpanel{display:none}
 #r1:checked ~ #detail .p1,
 #r2:checked ~ #detail .p2,
@@ -126,17 +103,14 @@ button.cta{
 #r4:checked ~ #detail .p4,
 #r5:checked ~ #detail .p5,
 #r6:checked ~ #detail .p6{display:block}
-
-/* blokada scrolla strony przy otwartym modalu */
 body:has(#detail:target){overflow:hidden}
-
-/* === Lightbox zdjęć (bez JS) === */
 .lightbox{position:fixed;inset:0;display:none;z-index:9999}
 .lightbox:target{display:block}
 .lb-bg{position:absolute;inset:0;background:rgba(0,0,0,.75)}
 .lb-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
 .lb-img{max-width:92vw;max-height:92vh;border-radius:18px;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.6);display:block}
 .lb-close{position:absolute;top:10px;right:14px;text-decoration:none;color:#cfe3f6;font:700 22px/1 system-ui}
+@media(max-width:980px){.hero{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -149,79 +123,145 @@ body:has(#detail:target){overflow:hidden}
   <input type="radio" id="r5" name="sel" hidden>
   <input type="radio" id="r6" name="sel" hidden>
 
-  <div class="container">
-    <h1>PANEL UŻYTKOWNIKA</h1>
-
-    <!-- formularz -->
-    <form class="headerbar" action="#" method="post">
-      <button class="cta" type="submit">Zgłoś<br>usterkę</button>
-      <div class="field">
-        <label class="label" for="kod">KOD BŁĘDU</label>
-        <input class="input" id="kod" name="kod" type="text" placeholder="np. E42" required>
-      </div>
-      <div class="field">
-        <label class="label" for="lok">LOKALIZACJA NA MASZYNIE</label>
-        <input class="input" id="lok" name="lok" type="text" placeholder="np. Agregat czarny góra" required>
-      </div>
-      <div class="field">
-        <label class="label" for="opis">OPIS</label>
-        <input class="input" id="opis" name="opis" type="text" placeholder="krótki opis zdarzenia">
-      </div>
-    </form>
-
-    <!-- lista zgłoszeń -->
-    <section class="section">
-      <h2>Ostatnie usterki.</h2>
-      <div class="list-scroll">
-        <div class="list">
-          <label class="row" for="r1">
-            <div class="cell">E42<div class="meta">12:04</div></div>
-            <div class="cell">KBA C818 — sekcja 3<div class="meta">Linia 1</div></div>
-            <div class="cell">Brak rejestru, zatrzymanie po kilku sekundach…<div class="meta">Operator: J.D.</div></div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
-          </label>
-
-          <label class="row" for="r2">
-            <div class="cell">S12<div class="meta">11:20</div></div>
-            <div class="cell">Lithoman IV — sekcja 5</div>
-            <div class="cell">Przegrzanie modułu sterującego, alarm okresowy.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
-          </label>
-
-          <label class="row" for="r3">
-            <div class="cell">—<div class="meta">10:05</div></div>
-            <div class="cell">Sprężarkownia — Atlas Copco</div>
-            <div class="cell">Niski poziom oleju. Sprawdzić szczelność.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
-          </label>
-
-          <label class="row" for="r4">
-            <div class="cell">102<div class="meta">09:31</div></div>
-            <div class="cell">Lithoman IV — odwijak A</div>
-            <div class="cell">Nierówna praca taśmy. Sprawdzenie czujnika.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
-          </label>
-
-          <label class="row" for="r5">
-            <div class="cell">B07<div class="meta">08:55</div></div>
-            <div class="cell">Linia pakowania — waga 2</div>
-            <div class="cell">Kalibracja wagi + czyszczenie fotokomórek.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
-          </label>
-
-          <label class="row" for="r6">
-            <div class="cell">A11<div class="meta">08:10</div></div>
-            <div class="cell">Myjka — obieg A</div>
-            <div class="cell">Wymiana filtra i odpowietrzenie.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
-          </label>
+  <div class="shell">
+    <div class="panel hero">
+      <div>
+        <h1>Panel użytkownika</h1>
+        <p class="lead">Jaśniejszy, większy widok zgłoszeń. Zgłaszaj błędy, wybieraj segment maszyny z nowej listy i szybko sprawdzaj historię.</p>
+        <div class="statbox">
+          <div class="stat"><span class="value">6</span><span class="label">Ostatnich zgłoszeń</span></div>
+          <div class="stat"><span class="value">3</span><span class="label">Otwartych</span></div>
+          <div class="stat"><span class="value">3</span><span class="label">Zamkniętych</span></div>
         </div>
+      </div>
+      <form class="panel" style="padding:18px" action="#" method="post">
+        <div class="form-grid">
+          <div class="field">
+            <label class="label" for="kod">Kod błędu</label>
+            <input class="input" id="kod" name="kod" type="text" placeholder="np. E42" required>
+          </div>
+          <div class="field">
+            <label class="label" for="linia">Linia produkcyjna</label>
+            <input class="input" id="linia" name="linia" type="text" placeholder="np. Linia 1" required>
+          </div>
+          <div class="field">
+            <label class="label" for="maszyna">Maszyna</label>
+            <input class="input" id="maszyna" name="maszyna" type="text" placeholder="np. KBA C818" required>
+          </div>
+          <div class="segment-field">
+            <label class="label" for="segment-input">Segment na maszynie</label>
+            <div class="segment-picker" data-target="segment-input">
+              <button class="segment-trigger" type="button">Wybierz segment <span aria-hidden="true">▾</span></button>
+              <div class="segment-menu">
+                <button type="button" data-value="">Wyczyść wybór</button>
+                <button class="segment-option" type="button" data-value="Odwijak">Odwijak</button>
+                <button class="segment-option" type="button" data-value="Zespół naprężający">Zespół naprężający</button>
+                <div class="segment-option">Agregat czarny
+                  <div class="segment-submenu">
+                    <button type="button" data-value="Agregat czarny, góra">Góra</button>
+                    <button type="button" data-value="Agregat czarny, dół">Dół</button>
+                  </div>
+                </div>
+                <div class="segment-option">Agregat cyjan
+                  <div class="segment-submenu">
+                    <button type="button" data-value="Agregat cyjan, góra">Góra</button>
+                    <button type="button" data-value="Agregat cyjan, dół">Dół</button>
+                  </div>
+                </div>
+                <div class="segment-option">Agregat magenta
+                  <div class="segment-submenu">
+                    <button type="button" data-value="Agregat magenta, góra">Góra</button>
+                    <button type="button" data-value="Agregat magenta, dół">Dół</button>
+                  </div>
+                </div>
+                <div class="segment-option">Agregat żółty
+                  <div class="segment-submenu">
+                    <button type="button" data-value="Agregat żółty, góra">Góra</button>
+                    <button type="button" data-value="Agregat żółty, dół">Dół</button>
+                  </div>
+                </div>
+                <button class="segment-option" type="button" data-value="UW">UW</button>
+                <button class="segment-option" type="button" data-value="Suszarka">Suszarka</button>
+                <button class="segment-option" type="button" data-value="Chłodnik">Chłodnik</button>
+                <button class="segment-option" type="button" data-value="Sylikon">Sylikon</button>
+                <button class="segment-option" type="button" data-value="Cięcie wstęgi">Cięcie wstęgi</button>
+                <button class="segment-option" type="button" data-value="Przerzutki i registry">Przerzutki i registry</button>
+                <button class="segment-option" type="button" data-value="Klejownik">Klejownik</button>
+                <button class="segment-option" type="button" data-value="Odcięcie głowa i nogi">Odcięcie głowa i nogi</button>
+                <button class="segment-option" type="button" data-value="Odcięcie poprzeczne">Odcięcie poprzeczne</button>
+                <button class="segment-option" type="button" data-value="Zszywarka">Zszywarka</button>
+                <button class="segment-option" type="button" data-value="Rozdzielacz">Rozdzielacz</button>
+                <div class="segment-option">Wykładaki
+                  <div class="segment-submenu">
+                    <button type="button" data-value="Wykładaki, góra">Góra</button>
+                    <button type="button" data-value="Wykładaki, dół">Dół</button>
+                  </div>
+                </div>
+              </div>
+              <input id="segment-input" name="lokalizacja" type="hidden">
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="opis">Opis zgłoszenia</label>
+          <textarea class="textarea" id="opis" name="opis" placeholder="Krótki opis zdarzenia"></textarea>
+        </div>
+        <button class="cta" type="submit">Zgłoś usterkę</button>
+      </form>
+    </div>
+
+    <div class="panel list-wrap">
+      <div class="list-header">
+        <h2>Ostatnie usterki</h2>
+        <span class="pill">Aktualizowane na bieżąco</span>
+      </div>
+      <div class="list">
+        <label class="row" for="r1">
+          <div class="cell">E42<div class="meta">12:04</div></div>
+          <div class="cell">KBA C818 — sekcja 3<div class="meta">Linia 1</div></div>
+          <div class="cell">Brak rejestru, zatrzymanie po kilku sekundach…<div class="meta">Operator: J.D.</div></div>
+          <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
+        </label>
+
+        <label class="row" for="r2">
+          <div class="cell">S12<div class="meta">11:20</div></div>
+          <div class="cell">Lithoman IV — sekcja 5</div>
+          <div class="cell">Przegrzanie modułu sterującego, alarm okresowy.</div>
+          <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
+        </label>
+
+        <label class="row" for="r3">
+          <div class="cell">—<div class="meta">10:05</div></div>
+          <div class="cell">Sprężarkownia — Atlas Copco</div>
+          <div class="cell">Niski poziom oleju. Sprawdź szczelność.</div>
+          <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
+        </label>
+
+        <label class="row" for="r4">
+          <div class="cell">102<div class="meta">09:31</div></div>
+          <div class="cell">Lithoman IV — odwijak A</div>
+          <div class="cell">Nierówna praca taśmy. Sprawdzenie czujnika.</div>
+          <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
+        </label>
+
+        <label class="row" for="r5">
+          <div class="cell">B07<div class="meta">08:55</div></div>
+          <div class="cell">Linia pakowania — waga 2</div>
+          <div class="cell">Kalibracja wagi + czyszczenie fotokomórek.</div>
+          <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
+        </label>
+
+        <label class="row" for="r6">
+          <div class="cell">A11<div class="meta">08:10</div></div>
+          <div class="cell">Myjka — obieg A</div>
+          <div class="cell">Wymiana filtra i odpowietrzenie.</div>
+          <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
+        </label>
       </div>
 
       <div class="dots"><span></span><span></span><span></span></div>
-    </section>
-
-    <a href="#detail" class="bigbtn">Sprawdź szczegóły usterki.</a>
+      <a href="#detail" class="bigbtn">Sprawdź szczegóły usterki.</a>
+    </div>
   </div>
 
   <!-- MODAL -->
@@ -391,6 +431,24 @@ body:has(#detail:target){overflow:hidden}
 
   <!-- p6: 1 zdjęcie -->
   <div id="lb-p6-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?10" alt=""><a class="lb-close" href="#detail">×</a></div></div>
+
+  <script>
+    const picker = document.querySelector('.segment-picker');
+    const trigger = picker.querySelector('.segment-trigger');
+    const hidden = picker.querySelector('input[type="hidden"]');
+    trigger.addEventListener('click', () => picker.classList.toggle('open'));
+    picker.querySelectorAll('[data-value]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const val = e.currentTarget.getAttribute('data-value');
+        hidden.value = val;
+        trigger.innerHTML = (val || 'Wybierz segment') + ' <span aria-hidden="true">▾</span>';
+        picker.classList.remove('open');
+      });
+    });
+    document.addEventListener('click', e => {
+      if (!picker.contains(e.target)) picker.classList.remove('open');
+    });
+  </script>
 
 </body>
 </html>
