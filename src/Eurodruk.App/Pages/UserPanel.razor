@@ -14,7 +14,37 @@
         </div>
         <div class="grid-2">
             <InputText @bind-Value="form.ProductionLine" placeholder="Linia" />
-            <InputText @bind-Value="form.Location" placeholder="Lokalizacja" />
+            <div class="segment-field">
+                <label class="segment-label">Segment na maszynie</label>
+                <div class="segment-picker @(showSegmentMenu ? "open" : string.Empty)">
+                    <button type="button" class="segment-trigger" @onclick="ToggleSegmentMenu">
+                        <span>@(string.IsNullOrWhiteSpace(form.Location) ? "Wybierz segment" : form.Location)</span>
+                        <span aria-hidden="true">▾</span>
+                    </button>
+                    <div class="segment-menu">
+                        <button type="button" @onclick="() => SelectSegment(string.Empty)">Wyczyść wybór</button>
+                        @foreach (var option in segmentOptions)
+                        {
+                            if (option.Variants.Any())
+                            {
+                                <div class="segment-option has-sub" @onclick:stopPropagation="true">
+                                    <span>@option.Label</span>
+                                    <div class="segment-submenu">
+                                        @foreach (var variant in option.Variants)
+                                        {
+                                            <button type="button" @onclick="() => SelectSegment($"{option.Label}, {variant.ToLower()}")">@variant</button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <button class="segment-option" type="button" @onclick="() => SelectSegment(option.Label)">@option.Label</button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
         <InputText @bind-Value="form.OperatorName" placeholder="Operator" />
         <InputTextArea @bind-Value="form.OperatorDescription" placeholder="Opis" />
@@ -76,6 +106,28 @@
     private IReadOnlyList<WorkshopTicket>? recentTickets;
     private WorkshopTicket? selectedTicket;
     private string? successMessage;
+    private bool showSegmentMenu;
+    private readonly List<SegmentOption> segmentOptions = new()
+    {
+        new("Odwijak"),
+        new("Zespół naprężający"),
+        new("Agregat czarny", new[] { "Góra", "Dół" }),
+        new("Agregat cyjan", new[] { "Góra", "Dół" }),
+        new("Agregat magenta", new[] { "Góra", "Dół" }),
+        new("Agregat żółty", new[] { "Góra", "Dół" }),
+        new("UW"),
+        new("Suszarka"),
+        new("Chłodnik"),
+        new("Sylikon"),
+        new("Cięcie wstęgi"),
+        new("Przerzutki i registry"),
+        new("Klejownik"),
+        new("Odcięcie głowa i nogi"),
+        new("Odcięcie poprzeczne"),
+        new("Zszywarka"),
+        new("Rozdzielacz"),
+        new("Wykładaki", new[] { "Góra", "Dół" })
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,6 +137,17 @@
     private async Task LoadTickets()
     {
         recentTickets = await UserTicketService.GetRecentAsync();
+    }
+
+    private void ToggleSegmentMenu()
+    {
+        showSegmentMenu = !showSegmentMenu;
+    }
+
+    private void SelectSegment(string value)
+    {
+        form.Location = value;
+        showSegmentMenu = false;
     }
 
     private async Task SubmitTicket()
@@ -132,5 +195,10 @@
 
         [Required]
         public string OperatorDescription { get; set; } = string.Empty;
+    }
+
+    private sealed record SegmentOption(string Label, IReadOnlyList<string> Variants)
+    {
+        public SegmentOption(string label) : this(label, Array.Empty<string>()) { }
     }
 }
