@@ -5,392 +5,222 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Panel użytkownika – usterki</title>
 <style>
-:root{
-  --bg:#0f1216; --panel:#141a21; --panel-2:#0f141b;
-  --text:#e7edf5; --muted:#9fb0c2; --accent:#33c3ff;
-  --radius:28px; --r-sm:16px;
-  --border:1px solid rgba(255,255,255,.06);
-  --shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+:root {
+  --bg:#151a23; --panel:#1f2735; --panel-2:#181f2b;
+  --muted:#c2ccd6; --text:#f3f7fd;
+  --accent:#33c3ff; --accent-2:#7a7cff;
+  --ok:#44e0a2; --warn:#ffb020;
+  --border:1px solid rgba(255,255,255,.12);
+  --shadow:0 14px 30px rgba(0,0,0,.38), 0 1px 0 rgba(255,255,255,.05) inset;
 }
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1319);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto}
-
-.container{max-width:1160px;margin:24px auto;padding:20px;background:var(--panel);border:var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-h1{margin:0 0 14px;text-align:center;font:700 15px/1.2 system-ui;color:#cfe3f6}
-
-/* formularz */
-form.headerbar{
-  display:grid;grid-template-columns:160px 1fr 1fr 1.2fr;gap:12px;
-  align-items:stretch;background:var(--panel-2);border:var(--border);border-radius:var(--r-sm);padding:12px
-}
-button.cta{
-  border:1px solid rgba(51,195,255,.35);border-radius:12px;background:linear-gradient(180deg,#173042,#122433);
-  color:#d7f2ff;font:700 13px/1.1 system-ui;text-transform:uppercase;cursor:pointer
-}
-.field{display:flex;flex-direction:column;gap:6px}
-.label{font:600 12px/1;color:#cfe3f6}
-.input{width:100%;padding:10px 12px;border-radius:12px;color:var(--text);background:linear-gradient(180deg,#10161d,#0e141a);border:var(--border);outline:none}
-.input::placeholder{color:rgba(255,255,255,.35)}
-.input:focus{box-shadow:0 0 0 2px rgba(51,195,255,.35) inset}
-@media (max-width:980px){form.headerbar{grid-template-columns:1fr}}
-
-/* lista */
-.section{margin-top:18px;padding:14px;border-radius:20px;border:var(--border);background:#121820}
-.section h2{margin:0 0 10px;font:600 15px/1.2 system-ui;color:#d9e7f6}
-.list-scroll{max-height:420px;overflow:auto;padding-right:2px}
-.list-scroll::-webkit-scrollbar{width:10px}
-.list-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:8px}
-
-.list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
-.row{
-  display:grid;grid-template-columns:1fr 1fr 1.2fr 120px;gap:12px;
-  padding:12px;border-radius:14px;background:linear-gradient(180deg,#0f141b,#0d1218);
-  border:1px solid rgba(255,255,255,.06);cursor:pointer;position:relative
-}
-.row:hover{outline:1px solid rgba(255,255,255,.12)}
-.cell{padding:10px 12px;border-radius:10px;background:#0f171f;border:1px solid rgba(255,255,255,.05)}
-.meta{color:var(--muted);font-size:12px;margin-top:4px}
-.status{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:#0f171f;font-weight:700}
-.status.open{color:#ffd58f;box-shadow:0 0 0 1px rgba(255,208,128,.2) inset}
-.status.closed{color:#9cd7ff;box-shadow:0 0 0 1px rgba(120,180,255,.2) inset}
-
-/* podświetlenie aktywnego wiersza przez globalne radio rX */
-#r1:checked ~ .container label[for="r1"],
-#r2:checked ~ .container label[for="r2"],
-#r3:checked ~ .container label[for="r3"],
-#r4:checked ~ .container label[for="r4"],
-#r5:checked ~ .container label[for="r5"],
-#r6:checked ~ .container label[for="r6"]{outline:1.5px solid rgba(51,195,255,.45)}
-
-.dots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px}
-.dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16)}
-.dots span:nth-child(2){background:rgba(255,255,255,.28)}
-
-.bigbtn{
-  display:block;text-decoration:none;margin:18px auto 6px;width:min(680px,90%);padding:16px 18px;text-align:center;
-  border-radius:999px;background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
-  font:600 14px/1.1 system-ui;color:#cfe3f6
+body{
+  margin:0;
+  font:15px/1.55 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+  background:linear-gradient(180deg,#0f131b 0%, var(--bg) 100%);
+  color:var(--text);
 }
 
-/* ===== Modal ===== */
-.modal{position:fixed;inset:0;display:none}
-.modal:target{display:block}
-.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55)}
-.sheet{
-  position:relative;max-width:980px;margin:40px auto;padding:20px;background:var(--panel);border:var(--border);
-  border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.6)
+h1{margin:0 0 12px;font-size:24px;letter-spacing:.03em;text-transform:uppercase;color:#dce6f2}
+h2{margin:0 0 10px;font-size:16px;color:#d9e7f6}
+p{margin:0}
+
+.container{max-width:1400px;margin:0 auto;padding:28px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:1050px){.grid-2{grid-template-columns:1fr}}
+
+.page-panel{
+  background:radial-gradient(120% 120% at 0% 0%, #1a2130 0%, var(--panel) 45%, var(--panel-2) 100%);
+  border:var(--border);
+  border-radius:26px;
+  box-shadow:var(--shadow);
+  padding:22px;
 }
-.close{position:absolute;top:10px;right:12px;font:700 20px/1 system-ui;color:#aac7dd;text-decoration:none}
 
-.detail h3{margin:0 0 12px;font:600 16px/1.2 system-ui}
-.place{background:var(--panel-2);border:var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px}
-
-/* układ: opis + zdjęcia */
-.split{display:grid;grid-template-columns:1fr 360px;gap:18px}
-@media (max-width:980px){.split{grid-template-columns:1fr}}
-.desc{min-width:0}
-
-/* zakładki nad opisem — ogólne */
-.tabs{display:block;margin:0 0 8px}
-.tabs input{display:none}
-.tabbar{display:flex;gap:8px}
-.tabbar label{
-  border:1px solid rgba(255,255,255,.08);background:#0f171f;color:#cfe3f6;
-  padding:6px 10px;border-radius:999px;font:600 12px;cursor:pointer;white-space:nowrap
+form.ticket-form{display:grid;gap:16px}
+.ticket-form input,
+.ticket-form textarea{
+  width:100%;
+  padding:12px 14px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.04);
+  color:inherit;
 }
-.tabs input:nth-of-type(1):checked ~ .tabbar label:nth-child(1),
-.tabs input:nth-of-type(2):checked ~ .tabbar label:nth-child(2){
-  background:linear-gradient(180deg,#1a2230,#151c28);
-  box-shadow:0 0 0 1.5px rgba(51,195,255,.35) inset;
+.ticket-form textarea{min-height:140px;resize:vertical}
+
+.segment-field{display:flex;flex-direction:column;gap:6px}
+.segment-label{font-size:13px;color:var(--muted)}
+.segment-picker{position:relative}
+.segment-trigger{
+  width:100%;
+  text-align:left;
+  border-radius:18px;
+  padding:12px 16px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
 }
-.box{
-  background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);border-radius:14px;padding:14px;
-  min-height:160px;max-height:260px;overflow:auto
+.segment-menu{
+  position:absolute;left:0;right:0;top:calc(100% + 6px);
+  background:var(--panel);border:var(--border);border-radius:18px;box-shadow:var(--shadow);
+  padding:8px;display:none;z-index:50;max-height:320px;overflow:auto;
 }
-.tabs input:nth-of-type(1):checked ~ .txt .op{display:block}
-.tabs input:nth-of-type(2):checked ~ .txt .sv{display:block}
-.txt>div{display:none}
+.segment-picker.open .segment-menu{display:grid;gap:6px}
+.segment-option,.segment-menu button{width:100%;text-align:left;border:none;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);color:var(--text);cursor:pointer}
+.segment-option:hover,.segment-menu button:hover{background:rgba(255,255,255,.08)}
+.segment-option.has-sub{position:relative;padding-right:80px}
+.segment-option .segment-submenu{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:none;gap:6px}
+.segment-option.has-sub:hover .segment-submenu{display:flex}
+.segment-option .segment-submenu button{width:auto;padding:8px 10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08)}
 
-/* zdjęcia */
-.photos{background:var(--panel-2);border:var(--border);border-radius:16px;padding:14px}
-.rail{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}
-.rail::-webkit-scrollbar{height:8px}
-.rail::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:8px}
-.rail img{display:block;width:120px;height:240px;object-fit:cover;border-radius:14px;border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 16px rgba(0,0,0,.35)}
+.table-list{display:flex;flex-direction:column;gap:10px}
+.ticket-card{
+  padding:16px 18px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  display:grid;
+  gap:8px;
+  text-align:left;
+  cursor:pointer;
+}
+.ticket-card:hover{outline:1px solid rgba(51,195,255,.25)}
+.ticket-card__meta{color:var(--muted);font-size:12px}
+.status-pill{
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:999px;padding:4px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+}
+.status-open{border:1px solid rgba(255,176,32,.35);color:#ffd18a;background:rgba(255,176,32,.12)}
+.status-closed{border:1px solid rgba(61,220,151,.35);color:#a3f3d3;background:rgba(61,220,151,.12)}
+.status-progress{border:1px solid rgba(122,124,255,.35);color:#cdd1ff;background:rgba(122,124,255,.12)}
 
-/* pokazanie panelu wg wybranego rX */
-.dpanel{display:none}
-#r1:checked ~ #detail .p1,
-#r2:checked ~ #detail .p2,
-#r3:checked ~ #detail .p3,
-#r4:checked ~ #detail .p4,
-#r5:checked ~ #detail .p5,
-#r6:checked ~ #detail .p6{display:block}
+.action-row{display:flex;gap:12px;flex-wrap:wrap}
+.action-row button{border-radius:999px;padding:12px 22px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:var(--text);cursor:pointer}
+.action-row .primary{border:none;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#0f1216;font-weight:600}
 
-/* blokada scrolla strony przy otwartym modalu */
-body:has(#detail:target){overflow:hidden}
+.empty-state{color:var(--muted);padding:10px 0;text-align:center}
+.toast{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(61,220,151,.15);border:1px solid rgba(61,220,151,.35);color:#a3f3d3}
 
-/* === Lightbox zdjęć (bez JS) === */
-.lightbox{position:fixed;inset:0;display:none;z-index:9999}
-.lightbox:target{display:block}
-.lb-bg{position:absolute;inset:0;background:rgba(0,0,0,.75)}
-.lb-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
-.lb-img{max-width:92vw;max-height:92vh;border-radius:18px;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.6);display:block}
-.lb-close{position:absolute;top:10px;right:14px;text-decoration:none;color:#cfe3f6;font:700 22px/1 system-ui}
+.dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1200}
+.dialog-backdrop.show{display:flex}
+.dialog{width:min(680px,95vw);background:var(--panel);border:var(--border);border-radius:24px;padding:20px;box-shadow:0 30px 60px rgba(0,0,0,.6)}
+.dialog header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.dialog header h3{margin:0}
+.dialog button{cursor:pointer}
 </style>
 </head>
 <body>
-
-  <!-- globalne radia wyboru rekordu -->
-  <input type="radio" id="r1" name="sel" hidden checked>
-  <input type="radio" id="r2" name="sel" hidden>
-  <input type="radio" id="r3" name="sel" hidden>
-  <input type="radio" id="r4" name="sel" hidden>
-  <input type="radio" id="r5" name="sel" hidden>
-  <input type="radio" id="r6" name="sel" hidden>
-
   <div class="container">
-    <h1>PANEL UŻYTKOWNIKA</h1>
+    <h1>Panel użytkownika</h1>
+    <p style="color:var(--muted);margin-bottom:18px">Dodaj zgłoszenie usterki i podglądaj ostatnie problemy zgłoszone w drukarni.</p>
 
-    <!-- formularz -->
-    <form class="headerbar" action="#" method="post">
-      <button class="cta" type="submit">Zgłoś<br>usterkę</button>
-      <div class="field">
-        <label class="label" for="kod">KOD BŁĘDU</label>
-        <input class="input" id="kod" name="kod" type="text" placeholder="np. E42" required>
-      </div>
-      <div class="field">
-        <label class="label" for="lok">LOKALIZACJA NA MASZYNIE</label>
-        <input class="input" id="lok" name="lok" type="text" placeholder="np. Agregat czarny góra" required>
-      </div>
-      <div class="field">
-        <label class="label" for="opis">OPIS</label>
-        <input class="input" id="opis" name="opis" type="text" placeholder="krótki opis zdarzenia">
-      </div>
-    </form>
-
-    <!-- lista zgłoszeń -->
-    <section class="section">
-      <h2>Ostatnie usterki.</h2>
-      <div class="list-scroll">
-        <div class="list">
-          <label class="row" for="r1">
-            <div class="cell">E42<div class="meta">12:04</div></div>
-            <div class="cell">KBA C818 — sekcja 3<div class="meta">Linia 1</div></div>
-            <div class="cell">Brak rejestru, zatrzymanie po kilku sekundach…<div class="meta">Operator: J.D.</div></div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
-          </label>
-
-          <label class="row" for="r2">
-            <div class="cell">S12<div class="meta">11:20</div></div>
-            <div class="cell">Lithoman IV — sekcja 5</div>
-            <div class="cell">Przegrzanie modułu sterującego, alarm okresowy.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
-          </label>
-
-          <label class="row" for="r3">
-            <div class="cell">—<div class="meta">10:05</div></div>
-            <div class="cell">Sprężarkownia — Atlas Copco</div>
-            <div class="cell">Niski poziom oleju. Sprawdzić szczelność.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
-          </label>
-
-          <label class="row" for="r4">
-            <div class="cell">102<div class="meta">09:31</div></div>
-            <div class="cell">Lithoman IV — odwijak A</div>
-            <div class="cell">Nierówna praca taśmy. Sprawdzenie czujnika.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
-          </label>
-
-          <label class="row" for="r5">
-            <div class="cell">B07<div class="meta">08:55</div></div>
-            <div class="cell">Linia pakowania — waga 2</div>
-            <div class="cell">Kalibracja wagi + czyszczenie fotokomórek.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
-          </label>
-
-          <label class="row" for="r6">
-            <div class="cell">A11<div class="meta">08:10</div></div>
-            <div class="cell">Myjka — obieg A</div>
-            <div class="cell">Wymiana filtra i odpowietrzenie.</div>
-            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
-          </label>
-        </div>
-      </div>
-
-      <div class="dots"><span></span><span></span><span></span></div>
-    </section>
-
-    <a href="#detail" class="bigbtn">Sprawdź szczegóły usterki.</a>
-  </div>
-
-  <!-- MODAL -->
-  <div id="detail" class="modal" aria-hidden="true">
-    <a class="backdrop" href="#"></a>
-    <div class="sheet">
-      <a class="close" href="#" aria-label="Zamknij">×</a>
-
-      <!-- p1 -->
-      <div class="detail dpanel p1">
-        <h3>Szczegóły zgłoszenia</h3>
-        <div class="place"><b>Miejsce:</b> KBA C818 → Sekcja 3 → Kod: E42</div>
-        <div class="split">
-          <div class="desc">
-            <div class="tabs">
-              <input type="radio" id="t1a" name="tab1" checked>
-              <input type="radio" id="t2a" name="tab1">
-              <div class="tabbar"><label for="t1a">Opis operatora</label><label for="t2a">Co zrobił serwisant</label></div>
-              <div class="txt">
-                <div class="box op">Podczas startu sekcji 3 pojawia się błąd E42. Wstęga nie rusza z odwijaka. Po skasowaniu błąd wraca.</div>
-                <div class="box sv">Wymieniono czujnik prędkości. Dokręcono rolkę prowadzącą, nasmarowano łożyska. Test 30 min OK.</div>
+    <div class="grid-2">
+      <section class="page-panel">
+        <h2>Zgłoś usterkę</h2>
+        <p class="empty-state" style="text-align:left;padding:0 0 6px">Uzupełnij pola, a serwis natychmiast otrzyma informację o problemie.</p>
+        <form class="ticket-form" action="#" method="post">
+          <input type="text" name="title" placeholder="Tytuł zgłoszenia" required>
+          <div class="grid-2">
+            <input type="text" name="code" placeholder="Kod błędu">
+            <input type="text" name="machine" placeholder="Maszyna" required>
+          </div>
+          <div class="grid-2">
+            <input type="text" name="line" placeholder="Linia" required>
+            <div class="segment-field">
+              <label class="segment-label">Segment na maszynie</label>
+              <div class="segment-picker" id="seg-picker">
+                <button type="button" class="segment-trigger" onclick="toggleMenu(event)">
+                  <span id="seg-value">Wybierz segment</span>
+                  <span aria-hidden="true">▾</span>
+                </button>
+                <div class="segment-menu" id="seg-menu">
+                  <button type="button" onclick="selectSegment('')">Wyczyść wybór</button>
+                  <button class="segment-option" type="button" onclick="selectSegment('Odwijak')">Odwijak</button>
+                  <div class="segment-option has-sub" onclick="event.stopPropagation()">
+                    <span>Agregat czarny</span>
+                    <div class="segment-submenu">
+                      <button type="button" onclick="selectSegment('Agregat czarny, góra')">Góra</button>
+                      <button type="button" onclick="selectSegment('Agregat czarny, dół')">Dół</button>
+                    </div>
+                  </div>
+                  <button class="segment-option" type="button" onclick="selectSegment('Suszarka')">Suszarka</button>
+                  <button class="segment-option" type="button" onclick="selectSegment('Cięcie wstęgi')">Cięcie wstęgi</button>
+                  <button class="segment-option" type="button" onclick="selectSegment('Zszywarka')">Zszywarka</button>
+                </div>
               </div>
             </div>
           </div>
-          <div class="photos"><div class="rail">
-            <a href="#lb-p1-1"><img src="https://picsum.photos/300/560?1" alt=""></a>
-            <a href="#lb-p1-2"><img src="https://picsum.photos/300/560?2" alt=""></a>
-            <a href="#lb-p1-3"><img src="https://picsum.photos/300/560?3" alt=""></a>
-          </div></div>
-        </div>
-      </div>
-
-      <!-- p2 -->
-      <div class="detail dpanel p2">
-        <h3>Szczegóły zgłoszenia</h3>
-        <div class="place"><b>Miejsce:</b> Lithoman IV → Sekcja 5 → Kod: S12</div>
-        <div class="split">
-          <div class="desc">
-            <div class="tabs">
-              <input type="radio" id="t1b" name="tab2" checked>
-              <input type="radio" id="t2b" name="tab2">
-              <div class="tabbar"><label for="t1b">Opis operatora</label><label for="t2b">Co zrobił serwisant</label></div>
-              <div class="txt">
-                <div class="box op">Przegrzanie modułu, alarm co kilka minut przy prędkości &gt;80%.</div>
-                <div class="box sv">Czyszczenie filtra i radiatora, kontrola termika, wymiana pasty. Test 45 min OK.</div>
-              </div>
-            </div>
+          <input type="text" name="operator" placeholder="Operator" required>
+          <textarea name="description" placeholder="Opis" required></textarea>
+          <div class="action-row">
+            <button class="primary" type="submit">Zgłoś usterkę</button>
+            <button type="reset">Wyczyść</button>
           </div>
-          <div class="photos"><div class="rail">
-            <a href="#lb-p2-1"><img src="https://picsum.photos/300/560?4" alt=""></a>
-            <a href="#lb-p2-2"><img src="https://picsum.photos/300/560?5" alt=""></a>
-          </div></div>
-        </div>
-      </div>
+        </form>
+        <div class="toast" style="display:none" id="success">Zgłoszenie zapisane</div>
+      </section>
 
-      <!-- p3 -->
-      <div class="detail dpanel p3">
-        <h3>Szczegóły zgłoszenia</h3>
-        <div class="place"><b>Miejsce:</b> Sprężarkownia → Atlas Copco → brak kodu</div>
-        <div class="split">
-          <div class="desc">
-            <div class="tabs">
-              <input type="radio" id="t1c" name="tab3" checked>
-              <input type="radio" id="t2c" name="tab3">
-              <div class="tabbar"><label for="t1c">Opis operatora</label><label for="t2c">Co zrobił serwisant</label></div>
-              <div class="txt">
-                <div class="box op">Niski poziom oleju, zapaliła się kontrolka serwisowa.</div>
-                <div class="box sv">Uzupełniono olej. Brak wycieków po 2h pracy.</div>
-              </div>
-            </div>
-          </div>
-          <div class="photos"><div class="rail">
-            <a href="#lb-p3-1"><img src="https://picsum.photos/300/560?6" alt=""></a>
-          </div></div>
+      <section class="page-panel">
+        <h2>Ostatnie zgłoszenia</h2>
+        <div class="table-list">
+          <button class="ticket-card" onclick="openDialog('E42', 'KBA C818 — sekcja 3', 'Brak rejestru, zatrzymanie po kilku sekundach…', 'Linia 1', 'Operator: J.D.', 'otwarte')">
+            <div class="ticket-card__meta">12.04 12:04 • KBA C818 • Linia 1</div>
+            <strong>Brak rejestru, zatrzymanie po kilku sekundach…</strong>
+            <p>Operator: J.D.</p>
+            <span class="status-pill status-open">Otwarte</span>
+          </button>
+          <button class="ticket-card" onclick="openDialog('S12', 'Lithoman IV — sekcja 5', 'Przegrzanie modułu sterującego, alarm okresowy.', 'Linia 2', 'Operator: L.B.', 'w toku')">
+            <div class="ticket-card__meta">12.04 11:20 • Lithoman IV • Linia 2</div>
+            <strong>Przegrzanie modułu sterującego</strong>
+            <p>Operator: L.B.</p>
+            <span class="status-pill status-progress">W toku</span>
+          </button>
+          <button class="ticket-card" onclick="openDialog('—', 'Sprężarkownia — Atlas Copco', 'Niski poziom oleju. Sprawdzić szczelność.', 'Linia 3', 'Operator: T.S.', 'zamknięte')">
+            <div class="ticket-card__meta">12.04 10:05 • Sprężarkownia • Linia 3</div>
+            <strong>Niski poziom oleju</strong>
+            <p>Operator: T.S.</p>
+            <span class="status-pill status-closed">Zamknięte</span>
+          </button>
         </div>
-      </div>
-
-      <!-- p4 -->
-      <div class="detail dpanel p4">
-        <h3>Szczegóły zgłoszenia</h3>
-        <div class="place"><b>Miejsce:</b> Lithoman IV → Odwijak A → Kod: 102</div>
-        <div class="split">
-          <div class="desc">
-            <div class="tabs">
-              <input type="radio" id="t1d" name="tab4" checked>
-              <input type="radio" id="t2d" name="tab4">
-              <div class="tabbar"><label for="t1d">Opis operatora</label><label for="t2d">Co zrobił serwisant</label></div>
-              <div class="txt">
-                <div class="box op">Nierówna praca taśmy na odwijaku.</div>
-                <div class="box sv">Wymieniono czujnik. Ustabilizowano prowadzenie taśmy.</div>
-              </div>
-            </div>
-          </div>
-          <div class="photos"><div class="rail">
-            <a href="#lb-p4-1"><img src="https://picsum.photos/300/560?7" alt=""></a>
-            <a href="#lb-p4-2"><img src="https://picsum.photos/300/560?8" alt=""></a>
-          </div></div>
-        </div>
-      </div>
-
-      <!-- p5 -->
-      <div class="detail dpanel p5">
-        <h3>Szczegóły zgłoszenia</h3>
-        <div class="place"><b>Miejsce:</b> Linia pakowania → Waga 2 → Kod: B07</div>
-        <div class="split">
-          <div class="desc">
-            <div class="tabs">
-              <input type="radio" id="t1e" name="tab5" checked>
-              <input type="radio" id="t2e" name="tab5">
-              <div class="tabbar"><label for="t1e">Opis operatora</label><label for="t2e">Co zrobił serwisant</label></div>
-              <div class="txt">
-                <div class="box op">Wyniki ważenia pływają o ±5 g.</div>
-                <div class="box sv">Kalibracja + czyszczenie fotokomórek. Stabilnie.</div>
-              </div>
-            </div>
-          </div>
-          <div class="photos"><div class="rail">
-            <a href="#lb-p5-1"><img src="https://picsum.photos/300/560?9" alt=""></a>
-          </div></div>
-        </div>
-      </div>
-
-      <!-- p6 -->
-      <div class="detail dpanel p6">
-        <h3>Szczegóły zgłoszenia</h3>
-        <div class="place"><b>Miejsce:</b> Myjka → Obieg A → Kod: A11</div>
-        <div class="split">
-          <div class="desc">
-            <div class="tabs">
-              <input type="radio" id="t1f" name="tab6" checked>
-              <input type="radio" id="t2f" name="tab6">
-              <div class="tabbar"><label for="t1f">Opis operatora</label><label for="t2f">Co zrobił serwisant</label></div>
-              <div class="txt">
-                <div class="box op">Słaby przepływ, spadek ciśnienia.</div>
-                <div class="box sv">Wymiana filtra, odpowietrzenie układu. OK.</div>
-              </div>
-            </div>
-          </div>
-          <div class="photos"><div class="rail">
-            <a href="#lb-p6-1"><img src="https://picsum.photos/300/560?10" alt=""></a>
-          </div></div>
-        </div>
-      </div>
-
+      </section>
     </div>
   </div>
 
-  <!-- ===== LIGHTBOXY ===== -->
-  <!-- p1: 3 zdjęcia -->
-  <div id="lb-p1-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?1" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-  <div id="lb-p1-2" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?2" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-  <div id="lb-p1-3" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?3" alt=""><a class="lb-close" href="#detail">×</a></div></div>
+  <div class="dialog-backdrop" id="dialog">
+    <div class="dialog">
+      <header>
+        <h3 id="d-title"></h3>
+        <button onclick="closeDialog()" aria-label="Zamknij">×</button>
+      </header>
+      <p><strong>Kod:</strong> <span id="d-code"></span></p>
+      <p><strong>Opis:</strong> <span id="d-desc"></span></p>
+      <p><strong>Linia:</strong> <span id="d-line"></span></p>
+      <p><strong>Status:</strong> <span id="d-status"></span></p>
+    </div>
+  </div>
 
-  <!-- p2: 2 zdjęcia -->
-  <div id="lb-p2-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?4" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-  <div id="lb-p2-2" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?5" alt=""><a class="lb-close" href="#detail">×</a></div></div>
+<script>
+const picker=document.getElementById('seg-picker');
+const menu=document.getElementById('seg-menu');
+const value=document.getElementById('seg-value');
+function toggleMenu(e){e.preventDefault();picker.classList.toggle('open')}
+function selectSegment(v){value.textContent=v||'Wybierz segment';picker.classList.remove('open')}
+document.addEventListener('click',e=>{if(!picker.contains(e.target))picker.classList.remove('open')});
 
-  <!-- p3: 1 zdjęcie -->
-  <div id="lb-p3-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?6" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-
-  <!-- p4: 2 zdjęcia -->
-  <div id="lb-p4-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?7" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-  <div id="lb-p4-2" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?8" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-
-  <!-- p5: 1 zdjęcie -->
-  <div id="lb-p5-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?9" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-
-  <!-- p6: 1 zdjęcie -->
-  <div id="lb-p6-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?10" alt=""><a class="lb-close" href="#detail">×</a></div></div>
-
+function openDialog(code,title,desc,line,operator,status){
+  document.getElementById('d-title').textContent=title;
+  document.getElementById('d-code').textContent=code;
+  document.getElementById('d-desc').textContent=`${desc} (${operator})`;
+  document.getElementById('d-line').textContent=line;
+  document.getElementById('d-status').textContent=status;
+  document.getElementById('dialog').classList.add('show');
+}
+function closeDialog(){document.getElementById('dialog').classList.remove('show')}
+</script>
 </body>
 </html>

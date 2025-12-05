@@ -3,87 +3,90 @@
 @inject IUserTicketService UserTicketService
 
 <h1>Panel użytkownika</h1>
-<section class="page-panel">
-    <EditForm Model="form" OnValidSubmit="SubmitTicket" class="ticket-form">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-        <InputText @bind-Value="form.Title" placeholder="Tytuł zgłoszenia" />
-        <div class="grid-2">
-            <InputText @bind-Value="form.ErrorCode" placeholder="Kod błędu" />
-            <InputText @bind-Value="form.MachineName" placeholder="Maszyna" />
-        </div>
-        <div class="grid-2">
-            <InputText @bind-Value="form.ProductionLine" placeholder="Linia" />
-            <div class="segment-field">
-                <label class="segment-label">Segment na maszynie</label>
-                <div class="segment-picker @(showSegmentMenu ? "open" : string.Empty)">
-                    <button type="button" class="segment-trigger" @onclick="ToggleSegmentMenu">
-                        <span>@(string.IsNullOrWhiteSpace(form.Location) ? "Wybierz segment" : form.Location)</span>
-                        <span aria-hidden="true">▾</span>
-                    </button>
-                    <div class="segment-menu">
-                        <button type="button" @onclick="() => SelectSegment(string.Empty)">Wyczyść wybór</button>
-                        @foreach (var option in segmentOptions)
-                        {
-                            if (option.Variants.Any())
+<div class="grid-2" style="margin-top:16px">
+    <section class="page-panel">
+        <h2>Zgłoś usterkę</h2>
+        <p class="empty-state" style="text-align:left;padding:0 0 10px">Podaj podstawowe informacje o usterce, aby serwis mógł szybciej ją obsłużyć.</p>
+        <EditForm Model="form" OnValidSubmit="SubmitTicket" class="ticket-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <InputText @bind-Value="form.Title" placeholder="Tytuł zgłoszenia" />
+            <div class="grid-2">
+                <InputText @bind-Value="form.ErrorCode" placeholder="Kod błędu" />
+                <InputText @bind-Value="form.MachineName" placeholder="Maszyna" />
+            </div>
+            <div class="grid-2">
+                <InputText @bind-Value="form.ProductionLine" placeholder="Linia" />
+                <div class="segment-field">
+                    <label class="segment-label">Segment na maszynie</label>
+                    <div class="segment-picker @(showSegmentMenu ? "open" : string.Empty)">
+                        <button type="button" class="segment-trigger" @onclick="ToggleSegmentMenu">
+                            <span>@(string.IsNullOrWhiteSpace(form.Location) ? "Wybierz segment" : form.Location)</span>
+                            <span aria-hidden="true">▾</span>
+                        </button>
+                        <div class="segment-menu">
+                            <button type="button" @onclick="() => SelectSegment(string.Empty)">Wyczyść wybór</button>
+                            @foreach (var option in segmentOptions)
                             {
-                                <div class="segment-option has-sub" @onclick:stopPropagation="true">
-                                    <span>@option.Label</span>
-                                    <div class="segment-submenu">
-                                        @foreach (var variant in option.Variants)
-                                        {
-                                            <button type="button" @onclick="() => SelectSegment($"{option.Label}, {variant.ToLower()}")">@variant</button>
-                                        }
+                                if (option.Variants.Any())
+                                {
+                                    <div class="segment-option has-sub" @onclick:stopPropagation="true">
+                                        <span>@option.Label</span>
+                                        <div class="segment-submenu">
+                                            @foreach (var variant in option.Variants)
+                                            {
+                                                <button type="button" @onclick="() => SelectSegment($"{option.Label}, {variant.ToLower()}")">@variant</button>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
+                                }
+                                else
+                                {
+                                    <button class="segment-option" type="button" @onclick="() => SelectSegment(option.Label)">@option.Label</button>
+                                }
                             }
-                            else
-                            {
-                                <button class="segment-option" type="button" @onclick="() => SelectSegment(option.Label)">@option.Label</button>
-                            }
-                        }
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <InputText @bind-Value="form.OperatorName" placeholder="Operator" />
-        <InputTextArea @bind-Value="form.OperatorDescription" placeholder="Opis" />
-        <div class="action-row">
-            <button class="primary" type="submit">Zgłoś usterkę</button>
-        </div>
-    </EditForm>
-    @if (!string.IsNullOrEmpty(successMessage))
-    {
-        <div class="toast">@successMessage</div>
-    }
-</section>
+            <InputText @bind-Value="form.OperatorName" placeholder="Operator" />
+            <InputTextArea @bind-Value="form.OperatorDescription" placeholder="Opis" />
+            <div class="action-row">
+                <button class="primary" type="submit">Zgłoś usterkę</button>
+            </div>
+        </EditForm>
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="toast">@successMessage</div>
+        }
+    </section>
 
-<section class="page-panel" style="margin-top:24px">
-    <h2>Ostatnie zgłoszenia</h2>
-    <div class="table-list">
-        @if (recentTickets is null)
-        {
-            <p class="empty-state">Ładowanie…</p>
-        }
-        else if (!recentTickets.Any())
-        {
-            <p class="empty-state">Brak zgłoszeń.</p>
-        }
-        else
-        {
-            foreach (var ticket in recentTickets)
+    <section class="page-panel">
+        <h2>Ostatnie zgłoszenia</h2>
+        <div class="table-list">
+            @if (recentTickets is null)
             {
-                <div class="ticket-card">
-                    <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM HH:mm • @ticket.MachineName</div>
-                    <strong>@ticket.Title</strong>
-                    <p>@ticket.OperatorDescription</p>
-                    <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
-                    <button style="margin-top:10px" @onclick="() => Select(ticket.Id)">Szczegóły</button>
-                </div>
+                <p class="empty-state">Ładowanie…</p>
             }
-        }
-    </div>
-</section>
+            else if (!recentTickets.Any())
+            {
+                <p class="empty-state">Brak zgłoszeń.</p>
+            }
+            else
+            {
+                foreach (var ticket in recentTickets)
+                {
+                    <button class="ticket-card" @onclick="() => Select(ticket.Id)" style="text-align:left">
+                        <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM HH:mm • @ticket.MachineName • Linia @ticket.ProductionLine</div>
+                        <strong>@ticket.Title</strong>
+                        <p>@ticket.OperatorDescription</p>
+                        <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
+                    </button>
+                }
+            }
+        </div>
+    </section>
+</div>
 
 @if (selectedTicket is not null)
 {
