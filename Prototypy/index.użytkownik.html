@@ -1,663 +1,396 @@
 <!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8">
-  <title>Panel użytkownika – usterki</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    :root{
-      --bg:#151a23;
-      --panel:#1f2735;
-      --panel-soft:#1b2230;
-      --panel-deep:#141a24;
-      --panel-light:#232e40;
-      --muted:#c2ccd6;
-      --text:#f3f7fd;
-      --accent:#33c3ff;
-      --accent-2:#7a7cff;
-      --warn:#ffb020;
-      --ok:#44e0a2;
-      --border:1px solid rgba(255,255,255,.14);
-      --shadow:0 18px 40px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.05) inset;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Panel użytkownika – usterki</title>
+<style>
+:root{
+  --bg:#0f1216; --panel:#141a21; --panel-2:#0f141b;
+  --text:#e7edf5; --muted:#9fb0c2; --accent:#33c3ff;
+  --radius:28px; --r-sm:16px;
+  --border:1px solid rgba(255,255,255,.06);
+  --shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1319);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto}
 
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font:16px/1.55 "Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,"Roboto",sans-serif;
-      background:radial-gradient(120% 180% at 0% 0%,#1a2130 0%,var(--bg) 40%,#05070b 100%);
-      color:var(--text);
-      min-height:100vh;
-    }
+.container{max-width:1160px;margin:24px auto;padding:20px;background:var(--panel);border:var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+h1{margin:0 0 14px;text-align:center;font:700 15px/1.2 system-ui;color:#cfe3f6}
 
-    .container{
-      max-width:1320px;
-      margin:0 auto;
-      padding:28px 18px 40px;
-    }
+/* formularz */
+form.headerbar{
+  display:grid;grid-template-columns:160px 1fr 1fr 1.2fr;gap:12px;
+  align-items:stretch;background:var(--panel-2);border:var(--border);border-radius:var(--r-sm);padding:12px
+}
+button.cta{
+  border:1px solid rgba(51,195,255,.35);border-radius:12px;background:linear-gradient(180deg,#173042,#122433);
+  color:#d7f2ff;font:700 13px/1.1 system-ui;text-transform:uppercase;cursor:pointer
+}
+.field{display:flex;flex-direction:column;gap:6px}
+.label{font:600 12px/1;color:#cfe3f6}
+.input{width:100%;padding:10px 12px;border-radius:12px;color:var(--text);background:linear-gradient(180deg,#10161d,#0e141a);border:var(--border);outline:none}
+.input::placeholder{color:rgba(255,255,255,.35)}
+.input:focus{box-shadow:0 0 0 2px rgba(51,195,255,.35) inset}
+@media (max-width:980px){form.headerbar{grid-template-columns:1fr}}
 
-    h1{
-      font-size:26px;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      margin-bottom:6px;
-      color:#e4ecf8;
-    }
-    .page-subtitle{
-      color:var(--muted);
-      margin-bottom:22px;
-    }
+/* lista */
+.section{margin-top:18px;padding:14px;border-radius:20px;border:var(--border);background:#121820}
+.section h2{margin:0 0 10px;font:600 15px/1.2 system-ui;color:#d9e7f6}
+.list-scroll{max-height:420px;overflow:auto;padding-right:2px}
+.list-scroll::-webkit-scrollbar{width:10px}
+.list-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:8px}
 
-    .main-panel{
-      background:radial-gradient(140% 200% at 0% 0%,#202b3f 0%,var(--panel-soft) 40%,var(--panel-deep) 100%);
-      border-radius:30px;
-      border:var(--border);
-      box-shadow:var(--shadow);
-      padding:20px 22px 24px;
-    }
+.list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.row{
+  display:grid;grid-template-columns:1fr 1fr 1.2fr 120px;gap:12px;
+  padding:12px;border-radius:14px;background:linear-gradient(180deg,#0f141b,#0d1218);
+  border:1px solid rgba(255,255,255,.06);cursor:pointer;position:relative
+}
+.row:hover{outline:1px solid rgba(255,255,255,.12)}
+.cell{padding:10px 12px;border-radius:10px;background:#0f171f;border:1px solid rgba(255,255,255,.05)}
+.meta{color:var(--muted);font-size:12px;margin-top:4px}
+.status{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:#0f171f;font-weight:700}
+.status.open{color:#ffd58f;box-shadow:0 0 0 1px rgba(255,208,128,.2) inset}
+.status.closed{color:#9cd7ff;box-shadow:0 0 0 1px rgba(120,180,255,.2) inset}
 
-    /* GÓRNY PASEK – FORMULARZ */
-    .ticket-header{
-      display:grid;
-      grid-template-columns:190px minmax(0,160px) minmax(0,260px) minmax(0,1fr);
-      gap:12px;
-      margin-bottom:22px;
-      align-items:stretch;
-    }
-    @media(max-width:980px){
-      .ticket-header{
-        grid-template-columns:1fr 1fr;
-      }
-    }
-    @media(max-width:640px){
-      .ticket-header{
-        grid-template-columns:1fr;
-      }
-    }
+/* podświetlenie aktywnego wiersza przez globalne radio rX */
+#r1:checked ~ .container label[for="r1"],
+#r2:checked ~ .container label[for="r2"],
+#r3:checked ~ .container label[for="r3"],
+#r4:checked ~ .container label[for="r4"],
+#r5:checked ~ .container label[for="r5"],
+#r6:checked ~ .container label[for="r6"]{outline:1.5px solid rgba(51,195,255,.45)}
 
-    .btn-main{
-      border-radius:999px;
-      border:none;
-      cursor:pointer;
-      font-weight:600;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      font-size:13px;
-      background:linear-gradient(100deg,var(--accent),var(--accent-2));
-      color:#05070b;
-      box-shadow:0 10px 25px rgba(0,0,0,.45);
-      padding:14px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-    }
-    .btn-main span.icon{
-      font-size:18px;
-      line-height:1;
-    }
+.dots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px}
+.dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16)}
+.dots span:nth-child(2){background:rgba(255,255,255,.28)}
 
-    .field{
-      position:relative;
-    }
-    .field input{
-      width:100%;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.22);
-      background:rgba(10,12,18,.85);
-      color:var(--text);
-      padding:13px 15px;
-      font-size:15px;
-      outline:none;
-      transition:border .15s,background .15s,box-shadow .15s;
-    }
-    .field input::placeholder{
-      color:rgba(194,204,214,.65);
-    }
-    .field input:focus{
-      border-color:rgba(51,195,255,.9);
-      box-shadow:0 0 0 1px rgba(51,195,255,.5);
-      background:rgba(15,21,32,.98);
-    }
-    .field label{
-      position:absolute;
-      left:16px;
-      top:5px;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      color:rgba(194,204,214,.85);
-      pointer-events:none;
-    }
-    .field input{
-      padding-top:26px;
-    }
+.bigbtn{
+  display:block;text-decoration:none;margin:18px auto 6px;width:min(680px,90%);padding:16px 18px;text-align:center;
+  border-radius:999px;background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  font:600 14px/1.1 system-ui;color:#cfe3f6
+}
 
-    /* LISTA USTEREK */
-    .section-title-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:12px;
-      gap:12px;
-    }
-    .section-title-row h2{
-      font-size:16px;
-      color:#e0e9f8;
-    }
-    .section-title-row span{
-      font-size:13px;
-      color:var(--muted);
-    }
+/* ===== Modal ===== */
+.modal{position:fixed;inset:0;display:none}
+.modal:target{display:block}
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.sheet{
+  position:relative;max-width:980px;margin:40px auto;padding:20px;background:var(--panel);border:var(--border);
+  border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.6)
+}
+.close{position:absolute;top:10px;right:12px;font:700 20px/1 system-ui;color:#aac7dd;text-decoration:none}
 
-    .ticket-list{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      max-height:430px;
-      overflow:auto;
-      padding-right:4px;
-    }
+.detail h3{margin:0 0 12px;font:600 16px/1.2 system-ui}
+.place{background:var(--panel-2);border:var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px}
 
-    .ticket-row{
-      display:grid;
-      grid-template-columns:130px minmax(0,270px) minmax(0,1fr) 120px;
-      gap:10px;
-      padding:12px 14px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.09);
-      background:rgba(13,18,27,.9);
-      cursor:pointer;
-      text-align:left;
-      transition:background .15s,border .15s,transform .12s;
-    }
-    .ticket-row:nth-child(odd){
-      background:rgba(20,27,39,.98);
-    }
-    .ticket-row:hover{
-      border-color:rgba(51,195,255,.55);
-      background:rgba(25,35,50,1);
-      transform:translateY(-1px);
-    }
-    .ticket-row.selected{
-      border-color:rgba(51,195,255,.9);
-      box-shadow:0 0 0 1px rgba(51,195,255,.5);
-    }
+/* układ: opis + zdjęcia */
+.split{display:grid;grid-template-columns:1fr 360px;gap:18px}
+@media (max-width:980px){.split{grid-template-columns:1fr}}
+.desc{min-width:0}
 
-    .cell-label{
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      color:rgba(194,204,214,.72);
-      margin-bottom:2px;
-    }
-    .cell-main{
-      font-size:15px;
-    }
-    .cell-sub{
-      font-size:13px;
-      color:var(--muted);
-      margin-top:2px;
-    }
+/* zakładki nad opisem — ogólne */
+.tabs{display:block;margin:0 0 8px}
+.tabs input{display:none}
+.tabbar{display:flex;gap:8px}
+.tabbar label{
+  border:1px solid rgba(255,255,255,.08);background:#0f171f;color:#cfe3f6;
+  padding:6px 10px;border-radius:999px;font:600 12px;cursor:pointer;white-space:nowrap
+}
+.tabs input:nth-of-type(1):checked ~ .tabbar label:nth-child(1),
+.tabs input:nth-of-type(2):checked ~ .tabbar label:nth-child(2){
+  background:linear-gradient(180deg,#1a2230,#151c28);
+  box-shadow:0 0 0 1.5px rgba(51,195,255,.35) inset;
+}
+.box{
+  background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);border-radius:14px;padding:14px;
+  min-height:160px;max-height:260px;overflow:auto
+}
+.tabs input:nth-of-type(1):checked ~ .txt .op{display:block}
+.tabs input:nth-of-type(2):checked ~ .txt .sv{display:block}
+.txt>div{display:none}
 
-    .code-main{
-      font-weight:600;
-      font-size:16px;
-    }
-    .code-sub{
-      font-size:12px;
-      color:var(--muted);
-    }
+/* zdjęcia */
+.photos{background:var(--panel-2);border:var(--border);border-radius:16px;padding:14px}
+.rail{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}
+.rail::-webkit-scrollbar{height:8px}
+.rail::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:8px}
+.rail img{display:block;width:120px;height:240px;object-fit:cover;border-radius:14px;border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 16px rgba(0,0,0,.35)}
 
-    .status-badge{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:999px;
-      padding:7px 16px;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      border:1px solid transparent;
-      min-width:96px;
-    }
-    .status-open{
-      border-color:rgba(255,176,32,.45);
-      background:rgba(255,176,32,.12);
-      color:#ffd893;
-    }
-    .status-progress{
-      border-color:rgba(122,124,255,.45);
-      background:rgba(122,124,255,.13);
-      color:#d6d7ff;
-    }
-    .status-closed{
-      border-color:rgba(61,220,151,.45);
-      background:rgba(61,220,151,.13);
-      color:#a4f3d4;
-    }
+/* pokazanie panelu wg wybranego rX */
+.dpanel{display:none}
+#r1:checked ~ #detail .p1,
+#r2:checked ~ #detail .p2,
+#r3:checked ~ #detail .p3,
+#r4:checked ~ #detail .p4,
+#r5:checked ~ #detail .p5,
+#r6:checked ~ #detail .p6{display:block}
 
-    /* DÓŁ – PAGER + BUTTON */
-    .bottom-row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      margin-top:18px;
-    }
-    .dots{
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-    .dot{
-      width:6px;
-      height:6px;
-      border-radius:999px;
-      background:rgba(255,255,255,.18);
-    }
-    .dot.active{
-      width:18px;
-      background:#ffffff;
-    }
+/* blokada scrolla strony przy otwartym modalu */
+body:has(#detail:target){overflow:hidden}
 
-    .btn-secondary-full{
-      flex:1;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.22);
-      background:rgba(12,16,24,.98);
-      color:var(--text);
-      padding:13px 20px;
-      cursor:pointer;
-      font-size:14px;
-      text-align:center;
-      box-shadow:0 10px 25px rgba(0,0,0,.45);
-    }
-    .btn-secondary-full:hover{
-      border-color:rgba(51,195,255,.7);
-      background:rgba(18,24,36,1);
-    }
-
-    /* MODAL */
-    .dialog-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.82);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:1000;
-    }
-    .dialog-backdrop.show{display:flex;}
-
-    .dialog{
-      width:min(900px,96vw);
-      background:radial-gradient(140% 200% at 0% 0%,#242f43 0%,#151b27 35%,#0b0f18 100%);
-      border-radius:26px;
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 32px 60px rgba(0,0,0,.75);
-      padding:18px 20px 18px;
-      color:var(--text);
-    }
-    .dialog header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:10px;
-    }
-    .dialog-title{
-      font-size:18px;
-      font-weight:600;
-    }
-    .dialog-close{
-      border:none;
-      background:transparent;
-      color:var(--muted);
-      font-size:22px;
-      cursor:pointer;
-      line-height:1;
-    }
-
-    .dialog-location{
-      margin-bottom:14px;
-      font-size:14px;
-    }
-    .dialog-location span.label{
-      display:inline-block;
-      margin-right:6px;
-      font-weight:600;
-    }
-    .dialog-location span.chip{
-      display:inline-flex;
-      align-items:center;
-      border-radius:999px;
-      padding:5px 12px;
-      font-size:13px;
-      background:rgba(15,23,36,.95);
-      border:1px solid rgba(255,255,255,.16);
-    }
-
-    .dialog-body{
-      display:grid;
-      grid-template-columns:minmax(0,2.1fr) minmax(0,1.3fr);
-      gap:16px;
-    }
-    @media(max-width:820px){
-      .dialog-body{
-        grid-template-columns:1fr;
-      }
-    }
-
-    .tabs{
-      display:flex;
-      gap:8px;
-      margin-bottom:10px;
-    }
-    .tabs button{
-      flex:1;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(11,16,25,1);
-      color:var(--muted);
-      padding:8px 10px;
-      font-size:13px;
-      cursor:pointer;
-    }
-    .tabs button.active{
-      background:linear-gradient(100deg,var(--accent),var(--accent-2));
-      color:#05070b;
-      border:none;
-    }
-
-    .dialog-textbox{
-      border-radius:18px;
-      background:rgba(6,9,15,.95);
-      border:1px solid rgba(255,255,255,.15);
-      padding:12px 14px;
-      font-size:14px;
-      min-height:190px;
-      white-space:pre-wrap;
-    }
-
-    .dialog-gallery{
-      border-radius:20px;
-      background:rgba(10,14,22,.95);
-      border:1px solid rgba(255,255,255,.15);
-      padding:10px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      max-height:260px;
-    }
-    .dialog-gallery-inner{
-      display:flex;
-      gap:8px;
-      overflow-x:auto;
-    }
-    .dialog-gallery img{
-      display:block;
-      width:160px;
-      height:220px;
-      object-fit:cover;
-      border-radius:16px;
-    }
-    .dialog-gallery-label{
-      font-size:12px;
-      color:var(--muted);
-    }
-  </style>
+/* === Lightbox zdjęć (bez JS) === */
+.lightbox{position:fixed;inset:0;display:none;z-index:9999}
+.lightbox:target{display:block}
+.lb-bg{position:absolute;inset:0;background:rgba(0,0,0,.75)}
+.lb-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
+.lb-img{max-width:92vw;max-height:92vh;border-radius:18px;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.6);display:block}
+.lb-close{position:absolute;top:10px;right:14px;text-decoration:none;color:#cfe3f6;font:700 22px/1 system-ui}
+</style>
 </head>
 <body>
-<div class="container">
-  <h1>Panel użytkownika</h1>
-  <p class="page-subtitle">Dodaj zgłoszenie usterki i podglądaj ostatnie problemy zgłoszone w drukarni.</p>
 
-  <section class="main-panel">
-    <!-- GÓRNY PASEK -->
-    <div class="ticket-header">
-      <button class="btn-main" type="button">
-        <span class="icon">＋</span>
-        <span>Zgłoś usterkę</span>
-      </button>
+  <!-- globalne radia wyboru rekordu -->
+  <input type="radio" id="r1" name="sel" hidden checked>
+  <input type="radio" id="r2" name="sel" hidden>
+  <input type="radio" id="r3" name="sel" hidden>
+  <input type="radio" id="r4" name="sel" hidden>
+  <input type="radio" id="r5" name="sel" hidden>
+  <input type="radio" id="r6" name="sel" hidden>
 
+  <div class="container">
+    <h1>PANEL UŻYTKOWNIKA</h1>
+
+    <!-- formularz -->
+    <form class="headerbar" action="#" method="post">
+      <button class="cta" type="submit">Zgłoś<br>usterkę</button>
       <div class="field">
-        <label for="f-code">Kod błędu</label>
-        <input id="f-code" type="text" placeholder="np. E42">
+        <label class="label" for="kod">KOD BŁĘDU</label>
+        <input class="input" id="kod" name="kod" type="text" placeholder="np. E42" required>
       </div>
-
       <div class="field">
-        <label for="f-loc">Lokalizacja na maszynie</label>
-        <input id="f-loc" type="text" placeholder="np. Agregat czarny góra">
+        <label class="label" for="lok">LOKALIZACJA NA MASZYNIE</label>
+        <input class="input" id="lok" name="lok" type="text" placeholder="np. Agregat czarny góra" required>
       </div>
-
       <div class="field">
-        <label for="f-desc">Opis</label>
-        <input id="f-desc" type="text" placeholder="Krótki opis zdarzenia">
+        <label class="label" for="opis">OPIS</label>
+        <input class="input" id="opis" name="opis" type="text" placeholder="krótki opis zdarzenia">
       </div>
-    </div>
+    </form>
 
-    <!-- LISTA USTEREK -->
-    <div class="section-title-row">
-      <div>
-        <h2>Ostatnie usterki.</h2>
-        <span>Wybierz zgłoszenie, aby sprawdzić szczegóły.</span>
-      </div>
-    </div>
+    <!-- lista zgłoszeń -->
+    <section class="section">
+      <h2>Ostatnie usterki.</h2>
+      <div class="list-scroll">
+        <div class="list">
+          <label class="row" for="r1">
+            <div class="cell">E42<div class="meta">12:04</div></div>
+            <div class="cell">KBA C818 — sekcja 3<div class="meta">Linia 1</div></div>
+            <div class="cell">Brak rejestru, zatrzymanie po kilku sekundach…<div class="meta">Operator: J.D.</div></div>
+            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
+          </label>
 
-    <div class="ticket-list" id="ticketList">
-      <!-- wiersz 1 -->
-      <button class="ticket-row selected"
-              data-title="KBA C818 — sekcja 3"
-              data-code="E42"
-              data-place="KBA C818 → Sekcja 3 → Kod: E42"
-              data-operator="Podczas startu sekcji 3 pojawia się błąd E42. Wstęga nie rusza z odwijaka. Po skasowaniu błąd wraca."
-              data-service="Sprawdzenie czujników rejestru. Wymiana uszkodzonego enkodera na odwijaku. Kalibracja modułu sterującego. Testy OK – błąd nie wraca."
-              data-status="otwarte">
-        <div>
-          <div class="cell-label">Kod</div>
-          <div class="cell-main code-main">E42</div>
-          <div class="code-sub">12:04</div>
-        </div>
+          <label class="row" for="r2">
+            <div class="cell">S12<div class="meta">11:20</div></div>
+            <div class="cell">Lithoman IV — sekcja 5</div>
+            <div class="cell">Przegrzanie modułu sterującego, alarm okresowy.</div>
+            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
+          </label>
 
-        <div>
-          <div class="cell-label">Maszyna</div>
-          <div class="cell-main">KBA C818 — sekcja 3</div>
-          <div class="cell-sub">Linia 1</div>
-        </div>
+          <label class="row" for="r3">
+            <div class="cell">—<div class="meta">10:05</div></div>
+            <div class="cell">Sprężarkownia — Atlas Copco</div>
+            <div class="cell">Niski poziom oleju. Sprawdzić szczelność.</div>
+            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status open">otwarte</span></div>
+          </label>
 
-        <div>
-          <div class="cell-label">Opis</div>
-          <div class="cell-main">Brak rejestru, zatrzymanie po kilku sekundach…</div>
-          <div class="cell-sub">Operator: J.D.</div>
-        </div>
+          <label class="row" for="r4">
+            <div class="cell">102<div class="meta">09:31</div></div>
+            <div class="cell">Lithoman IV — odwijak A</div>
+            <div class="cell">Nierówna praca taśmy. Sprawdzenie czujnika.</div>
+            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
+          </label>
 
-        <div style="display:flex;align-items:center;justify-content:flex-end;">
-          <span class="status-badge status-open">otwarte</span>
-        </div>
-      </button>
+          <label class="row" for="r5">
+            <div class="cell">B07<div class="meta">08:55</div></div>
+            <div class="cell">Linia pakowania — waga 2</div>
+            <div class="cell">Kalibracja wagi + czyszczenie fotokomórek.</div>
+            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
+          </label>
 
-      <!-- wiersz 2 -->
-      <button class="ticket-row"
-              data-title="Lithoman IV — sekcja 5"
-              data-code="S12"
-              data-place="Lithoman IV → Sekcja 5 → Kod: S12"
-              data-operator="Alarm S12 – przegrzanie modułu sterującego. Błąd pojawia się cyklicznie co kilka minut, po skasowaniu wraca podczas pracy."
-              data-service="Wyczyszczenie szafy sterowniczej, sprawdzenie pracy wentylatorów. Wymiana jednego z wentylatorów chłodzenia modułu. Monitoring temperatur – wartości w normie."
-              data-status="w toku">
-        <div>
-          <div class="cell-label">Kod</div>
-          <div class="cell-main code-main">S12</div>
-          <div class="code-sub">11:20</div>
-        </div>
-
-        <div>
-          <div class="cell-label">Maszyna</div>
-          <div class="cell-main">Lithoman IV — sekcja 5</div>
-          <div class="cell-sub">Linia 2</div>
-        </div>
-
-        <div>
-          <div class="cell-label">Opis</div>
-          <div class="cell-main">Przegrzanie modułu sterującego, alarm okresowy.</div>
-          <div class="cell-sub">Operator: L.B.</div>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:flex-end;">
-          <span class="status-badge status-progress">w toku</span>
-        </div>
-      </button>
-
-      <!-- wiersz 3 -->
-      <button class="ticket-row"
-              data-title="Sprężarkownia — Atlas Copco"
-              data-code="—"
-              data-place="Sprężarkownia → Atlas Copco"
-              data-operator="Niski poziom oleju na sprężarce. Poziom na granicy minimum, widoczny ślad oleju pod maszyną."
-              data-service="Dolewka oleju według zaleceń producenta. Sprawdzenie szczelności instalacji – brak aktywnych wycieków. Zaplanowana dodatkowa kontrola za 48 h."
-              data-status="zamknięte">
-        <div>
-          <div class="cell-label">Kod</div>
-          <div class="cell-main code-main">—</div>
-          <div class="code-sub">10:05</div>
-        </div>
-
-        <div>
-          <div class="cell-label">Maszyna</div>
-          <div class="cell-main">Sprężarkownia — Atlas Copco</div>
-          <div class="cell-sub">Linia 3</div>
-        </div>
-
-        <div>
-          <div class="cell-label">Opis</div>
-          <div class="cell-main">Niski poziom oleju. Sprawdzić szczelność.</div>
-          <div class="cell-sub">Operator: T.S.</div>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:flex-end;">
-          <span class="status-badge status-closed">zamknięte</span>
-        </div>
-      </button>
-    </div>
-
-    <!-- DÓŁ -->
-    <div class="bottom-row">
-      <div class="dots">
-        <div class="dot active"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-      </div>
-      <button class="btn-secondary-full" type="button" id="detailsBtn">
-        Sprawdź szczegóły usterki.
-      </button>
-    </div>
-  </section>
-</div>
-
-<!-- MODAL -->
-<div class="dialog-backdrop" id="dialog">
-  <div class="dialog" role="dialog" aria-modal="true">
-    <header>
-      <div class="dialog-title" id="dlgTitle">Szczegóły zgłoszenia</div>
-      <button class="dialog-close" type="button" id="dlgClose" aria-label="Zamknij">×</button>
-    </header>
-
-    <div class="dialog-location">
-      <span class="label">Miejsce:</span>
-      <span class="chip" id="dlgPlace">KBA C818 → Sekcja 3 → Kod: E42</span>
-    </div>
-
-    <div class="dialog-body">
-      <div>
-        <div class="tabs">
-          <button type="button" class="active" data-tab="op">Opis operatora</button>
-          <button type="button" data-tab="serv">Co zrobił serwisant</button>
-        </div>
-        <div class="dialog-textbox" id="dlgText">
-          <!-- tekst ustawiany z JS -->
+          <label class="row" for="r6">
+            <div class="cell">A11<div class="meta">08:10</div></div>
+            <div class="cell">Myjka — obieg A</div>
+            <div class="cell">Wymiana filtra i odpowietrzenie.</div>
+            <div class="cell" style="display:flex;align-items:center;justify-content:center"><span class="status closed">zamknięte</span></div>
+          </label>
         </div>
       </div>
 
-      <div class="dialog-gallery">
-        <div class="dialog-gallery-label">Zdjęcia z usterki</div>
-        <div class="dialog-gallery-inner">
-          <!-- możesz tu podmienić na własne ścieżki -->
-          <img src="https://images.pexels.com/photos/34092/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=800" alt="">
-          <img src="https://images.pexels.com/photos/34088/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=800" alt="">
-          <img src="https://images.pexels.com/photos/34077/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=800" alt="">
+      <div class="dots"><span></span><span></span><span></span></div>
+    </section>
+
+    <a href="#detail" class="bigbtn">Sprawdź szczegóły usterki.</a>
+  </div>
+
+  <!-- MODAL -->
+  <div id="detail" class="modal" aria-hidden="true">
+    <a class="backdrop" href="#"></a>
+    <div class="sheet">
+      <a class="close" href="#" aria-label="Zamknij">×</a>
+
+      <!-- p1 -->
+      <div class="detail dpanel p1">
+        <h3>Szczegóły zgłoszenia</h3>
+        <div class="place"><b>Miejsce:</b> KBA C818 → Sekcja 3 → Kod: E42</div>
+        <div class="split">
+          <div class="desc">
+            <div class="tabs">
+              <input type="radio" id="t1a" name="tab1" checked>
+              <input type="radio" id="t2a" name="tab1">
+              <div class="tabbar"><label for="t1a">Opis operatora</label><label for="t2a">Co zrobił serwisant</label></div>
+              <div class="txt">
+                <div class="box op">Podczas startu sekcji 3 pojawia się błąd E42. Wstęga nie rusza z odwijaka. Po skasowaniu błąd wraca.</div>
+                <div class="box sv">Wymieniono czujnik prędkości. Dokręcono rolkę prowadzącą, nasmarowano łożyska. Test 30 min OK.</div>
+              </div>
+            </div>
+          </div>
+          <div class="photos"><div class="rail">
+            <a href="#lb-p1-1"><img src="https://picsum.photos/300/560?1" alt=""></a>
+            <a href="#lb-p1-2"><img src="https://picsum.photos/300/560?2" alt=""></a>
+            <a href="#lb-p1-3"><img src="https://picsum.photos/300/560?3" alt=""></a>
+          </div></div>
         </div>
       </div>
+
+      <!-- p2 -->
+      <div class="detail dpanel p2">
+        <h3>Szczegóły zgłoszenia</h3>
+        <div class="place"><b>Miejsce:</b> Lithoman IV → Sekcja 5 → Kod: S12</div>
+        <div class="split">
+          <div class="desc">
+            <div class="tabs">
+              <input type="radio" id="t1b" name="tab2" checked>
+              <input type="radio" id="t2b" name="tab2">
+              <div class="tabbar"><label for="t1b">Opis operatora</label><label for="t2b">Co zrobił serwisant</label></div>
+              <div class="txt">
+                <div class="box op">Przegrzanie modułu, alarm co kilka minut przy prędkości &gt;80%.</div>
+                <div class="box sv">Czyszczenie filtra i radiatora, kontrola termika, wymiana pasty. Test 45 min OK.</div>
+              </div>
+            </div>
+          </div>
+          <div class="photos"><div class="rail">
+            <a href="#lb-p2-1"><img src="https://picsum.photos/300/560?4" alt=""></a>
+            <a href="#lb-p2-2"><img src="https://picsum.photos/300/560?5" alt=""></a>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- p3 -->
+      <div class="detail dpanel p3">
+        <h3>Szczegóły zgłoszenia</h3>
+        <div class="place"><b>Miejsce:</b> Sprężarkownia → Atlas Copco → brak kodu</div>
+        <div class="split">
+          <div class="desc">
+            <div class="tabs">
+              <input type="radio" id="t1c" name="tab3" checked>
+              <input type="radio" id="t2c" name="tab3">
+              <div class="tabbar"><label for="t1c">Opis operatora</label><label for="t2c">Co zrobił serwisant</label></div>
+              <div class="txt">
+                <div class="box op">Niski poziom oleju, zapaliła się kontrolka serwisowa.</div>
+                <div class="box sv">Uzupełniono olej. Brak wycieków po 2h pracy.</div>
+              </div>
+            </div>
+          </div>
+          <div class="photos"><div class="rail">
+            <a href="#lb-p3-1"><img src="https://picsum.photos/300/560?6" alt=""></a>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- p4 -->
+      <div class="detail dpanel p4">
+        <h3>Szczegóły zgłoszenia</h3>
+        <div class="place"><b>Miejsce:</b> Lithoman IV → Odwijak A → Kod: 102</div>
+        <div class="split">
+          <div class="desc">
+            <div class="tabs">
+              <input type="radio" id="t1d" name="tab4" checked>
+              <input type="radio" id="t2d" name="tab4">
+              <div class="tabbar"><label for="t1d">Opis operatora</label><label for="t2d">Co zrobił serwisant</label></div>
+              <div class="txt">
+                <div class="box op">Nierówna praca taśmy na odwijaku.</div>
+                <div class="box sv">Wymieniono czujnik. Ustabilizowano prowadzenie taśmy.</div>
+              </div>
+            </div>
+          </div>
+          <div class="photos"><div class="rail">
+            <a href="#lb-p4-1"><img src="https://picsum.photos/300/560?7" alt=""></a>
+            <a href="#lb-p4-2"><img src="https://picsum.photos/300/560?8" alt=""></a>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- p5 -->
+      <div class="detail dpanel p5">
+        <h3>Szczegóły zgłoszenia</h3>
+        <div class="place"><b>Miejsce:</b> Linia pakowania → Waga 2 → Kod: B07</div>
+        <div class="split">
+          <div class="desc">
+            <div class="tabs">
+              <input type="radio" id="t1e" name="tab5" checked>
+              <input type="radio" id="t2e" name="tab5">
+              <div class="tabbar"><label for="t1e">Opis operatora</label><label for="t2e">Co zrobił serwisant</label></div>
+              <div class="txt">
+                <div class="box op">Wyniki ważenia pływają o ±5 g.</div>
+                <div class="box sv">Kalibracja + czyszczenie fotokomórek. Stabilnie.</div>
+              </div>
+            </div>
+          </div>
+          <div class="photos"><div class="rail">
+            <a href="#lb-p5-1"><img src="https://picsum.photos/300/560?9" alt=""></a>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- p6 -->
+      <div class="detail dpanel p6">
+        <h3>Szczegóły zgłoszenia</h3>
+        <div class="place"><b>Miejsce:</b> Myjka → Obieg A → Kod: A11</div>
+        <div class="split">
+          <div class="desc">
+            <div class="tabs">
+              <input type="radio" id="t1f" name="tab6" checked>
+              <input type="radio" id="t2f" name="tab6">
+              <div class="tabbar"><label for="t1f">Opis operatora</label><label for="t2f">Co zrobił serwisant</label></div>
+              <div class="txt">
+                <div class="box op">Słaby przepływ, spadek ciśnienia.</div>
+                <div class="box sv">Wymiana filtra, odpowietrzenie układu. OK.</div>
+              </div>
+            </div>
+          </div>
+          <div class="photos"><div class="rail">
+            <a href="#lb-p6-1"><img src="https://picsum.photos/300/560?10" alt=""></a>
+          </div></div>
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
 
-<script>
-  const ticketList = document.getElementById('ticketList');
-  const dialog = document.getElementById('dialog');
-  const dlgTitle = document.getElementById('dlgTitle');
-  const dlgPlace = document.getElementById('dlgPlace');
-  const dlgText = document.getElementById('dlgText');
-  const detailsBtn = document.getElementById('detailsBtn');
-  const closeBtn = document.getElementById('dlgClose');
-  const tabButtons = document.querySelectorAll('.tabs button');
+  <!-- ===== LIGHTBOXY ===== -->
+  <!-- p1: 3 zdjęcia -->
+  <div id="lb-p1-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?1" alt=""><a class="lb-close" href="#detail">×</a></div></div>
+  <div id="lb-p1-2" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?2" alt=""><a class="lb-close" href="#detail">×</a></div></div>
+  <div id="lb-p1-3" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?3" alt=""><a class="lb-close" href="#detail">×</a></div></div>
 
-  let currentTicket = ticketList.querySelector('.ticket-row.selected');
-  let currentTab = 'op';
+  <!-- p2: 2 zdjęcia -->
+  <div id="lb-p2-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?4" alt=""><a class="lb-close" href="#detail">×</a></div></div>
+  <div id="lb-p2-2" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?5" alt=""><a class="lb-close" href="#detail">×</a></div></div>
 
-  function setSelected(ticket){
-    if(currentTicket) currentTicket.classList.remove('selected');
-    currentTicket = ticket;
-    if(currentTicket) currentTicket.classList.add('selected');
-  }
+  <!-- p3: 1 zdjęcie -->
+  <div id="lb-p3-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?6" alt=""><a class="lb-close" href="#detail">×</a></div></div>
 
-  function openDialog(){
-    if(!currentTicket) return;
-    const title = currentTicket.dataset.title;
-    const code = currentTicket.dataset.code;
-    const place = currentTicket.dataset.place;
-    const opText = currentTicket.dataset.operator || '';
-    const servText = currentTicket.dataset.service || '';
+  <!-- p4: 2 zdjęcia -->
+  <div id="lb-p4-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?7" alt=""><a class="lb-close" href="#detail">×</a></div></div>
+  <div id="lb-p4-2" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?8" alt=""><a class="lb-close" href="#detail">×</a></div></div>
 
-    dlgTitle.textContent = title;
-    dlgPlace.textContent = place;
-    dlgText.textContent = currentTab === 'op' ? opText : servText;
+  <!-- p5: 1 zdjęcie -->
+  <div id="lb-p5-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?9" alt=""><a class="lb-close" href="#detail">×</a></div></div>
 
-    dialog.classList.add('show');
-  }
+  <!-- p6: 1 zdjęcie -->
+  <div id="lb-p6-1" class="lightbox"><a class="lb-bg" href="#detail"></a><div class="lb-wrap"><img class="lb-img" src="https://picsum.photos/1200/2200?10" alt=""><a class="lb-close" href="#detail">×</a></div></div>
 
-  function closeDialog(){
-    dialog.classList.remove('show');
-  }
-
-  ticketList.addEventListener('click', e=>{
-    const row = e.target.closest('.ticket-row');
-    if(!row) return;
-    setSelected(row);
-  });
-
-  detailsBtn.addEventListener('click', openDialog);
-  closeBtn.addEventListener('click', closeDialog);
-  dialog.addEventListener('click', e=>{
-    if(e.target === dialog) closeDialog();
-  });
-
-  tabButtons.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(btn.classList.contains('active')) return;
-      tabButtons.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      currentTab = btn.dataset.tab;
-
-      if(!currentTicket) return;
-      dlgText.textContent =
-        currentTab === 'op'
-          ? (currentTicket.dataset.operator || '')
-          : (currentTicket.dataset.service || '');
-    });
-  });
-
-  // domyślnie – ustaw tekst dla pierwszej wybranej usterki
-  if(currentTicket){
-    dlgText.textContent = currentTicket.dataset.operator || '';
-  }
-</script>
 </body>
 </html>
