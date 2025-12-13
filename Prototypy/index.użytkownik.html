@@ -6,16 +6,31 @@
 <title>Panel użytkownika – usterki</title>
 <style>
 :root{
-  --bg:#0f1216; --panel:#141a21; --panel-2:#0f141b;
-  --text:#e7edf5; --muted:#9fb0c2; --accent:#33c3ff;
-  --radius:28px; --r-sm:16px;
-  --border:1px solid rgba(255,255,255,.06);
-  --shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.03) inset;
+  --bg:#151a23; --panel:#1f2735; --panel-2:#181f2b;
+  --muted:#c2ccd6; --text:#f3f7fd;
+  --accent:#33c3ff; --accent-2:#7a7cff;
+  --ok:#44e0a2; --warn:#ffb020;
+  --radius:20px; --gap:16px;
+  --shadow:0 14px 30px rgba(0,0,0,.38), 0 1px 0 rgba(255,255,255,.05) inset;
+  --border:1px solid rgba(255,255,255,.12);
 }
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1319);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0f131b 0%, var(--bg) 100%);
+  color:var(--text);
+  font:15px/1.55 system-ui,Segoe UI,Roboto,Ubuntu,Arial;
+}
 
-.container{max-width:1160px;margin:24px auto;padding:20px;background:var(--panel);border:var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.container{
+  max-width:1280px;
+  margin:28px auto;
+  padding:24px;
+  background: radial-gradient(120% 120% at 0% 0%, #1a2130 0%, var(--panel) 45%, var(--panel-2) 100%);
+  border:var(--border);
+  border-radius:calc(var(--radius) + 8px);
+  box-shadow:var(--shadow);
+}
 h1{margin:0 0 14px;text-align:center;font:700 15px/1.2 system-ui;color:#cfe3f6}
 
 /* formularz */
@@ -24,8 +39,11 @@ form.headerbar{
   align-items:stretch;background:var(--panel-2);border:var(--border);border-radius:var(--r-sm);padding:12px
 }
 button.cta{
-  border:1px solid rgba(51,195,255,.35);border-radius:12px;background:linear-gradient(180deg,#173042,#122433);
-  color:#d7f2ff;font:700 13px/1.1 system-ui;text-transform:uppercase;cursor:pointer
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  color:#0f1216;
+  font-weight:700;
 }
 .field{display:flex;flex-direction:column;gap:6px}
 .label{font:600 12px/1;color:#cfe3f6}
@@ -47,13 +65,20 @@ button.cta{
   padding:12px;border-radius:14px;background:linear-gradient(180deg,#0f141b,#0d1218);
   border:1px solid rgba(255,255,255,.06);cursor:pointer;position:relative
 }
-.row:hover{outline:1px solid rgba(255,255,255,.12)}
+.row:hover{outline:1px solid rgba(51,195,255,.25)}
 .cell{padding:10px 12px;border-radius:10px;background:#0f171f;border:1px solid rgba(255,255,255,.05)}
 .meta{color:var(--muted);font-size:12px;margin-top:4px}
-.status{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:#0f171f;font-weight:700}
-.status.open{color:#ffd58f;box-shadow:0 0 0 1px rgba(255,208,128,.2) inset}
-.status.closed{color:#9cd7ff;box-shadow:0 0 0 1px rgba(120,180,255,.2) inset}
-
+.status{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:8px 14px;border-radius:999px;font-weight:700;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+}
+.status.open{background:rgba(255,176,32,.15); color:#ffd18a; border:1px solid rgba(255,176,32,.35)}
+.status.closed{background:rgba(61,220,151,.18); color:#a3f3d3; border:1px solid rgba(61,220,151,.35)}
+/* jeśli masz "w toku" */
+.status.progress{background:rgba(122,124,255,.12); color:#cdd1ff; border:1px solid rgba(122,124,255,.35)}
 /* podświetlenie aktywnego wiersza przez globalne radio rX */
 #r1:checked ~ .container label[for="r1"],
 #r2:checked ~ .container label[for="r2"],
@@ -67,10 +92,11 @@ button.cta{
 .dots span:nth-child(2){background:rgba(255,255,255,.28)}
 
 .bigbtn{
-  display:block;text-decoration:none;margin:18px auto 6px;width:min(680px,90%);padding:16px 18px;text-align:center;
-  border-radius:999px;background:linear-gradient(180deg,#0f141b,#0d1218);border:var(--border);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
-  font:600 14px/1.1 system-ui;color:#cfe3f6
+  background:rgba(255,255,255,.03);
+  border:var(--border);
+  color:var(--text);
 }
+.bigbtn:hover{outline:1px solid rgba(51,195,255,.25)}
 
 /* ===== Modal ===== */
 .modal{position:fixed;inset:0;display:none}
