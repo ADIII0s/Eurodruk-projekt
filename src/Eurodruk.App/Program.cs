@@ -4,10 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var databaseOptions = builder.Configuration
-    .GetSection(DatabaseOptions.SectionName)
-    .Get<DatabaseOptions>() ?? new DatabaseOptions();
-
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -28,8 +24,17 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        var initializer = scope.ServiceProvider
-            .GetRequiredService<DatabaseInitializer>();
+        var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+        var databaseOptions = config
+            .GetSection(DatabaseOptions.SectionName)
+            .Get<DatabaseOptions>() ?? new DatabaseOptions();
+
+        var cs = config.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(cs))
+            throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection in configuration.");
+
+        var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
 
         if (databaseOptions.ApplyMigrationsOnStartup)
             await initializer.MigrateAsync();
