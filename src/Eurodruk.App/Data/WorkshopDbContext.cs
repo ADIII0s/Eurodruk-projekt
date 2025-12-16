@@ -19,9 +19,30 @@ public class WorkshopDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Machine>()
             .HasIndex(m => m.Name)
             .IsUnique();
+
+        modelBuilder.Entity<WorkshopTicket>()
+            .HasIndex(t => new { t.Status, t.CreatedAt });
+
+        modelBuilder.Entity<WorkshopTicket>()
+            .HasIndex(t => t.ErrorCode);
+
+        modelBuilder.Entity<WorkshopTicket>()
+            .Property(t => t.Title)
+            .HasMaxLength(200)
+            .IsRequired();
+
+        modelBuilder.Entity<WorkshopTicket>()
+            .Property(t => t.ErrorCode)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<WorkshopTicket>()
+            .Property(t => t.OperatorName)
+            .HasMaxLength(64);
 
         modelBuilder.Entity<WorkshopTicket>()
             .HasMany(t => t.Photos)

@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var databaseOptions = builder.Configuration
     .GetSection(DatabaseOptions.SectionName)
-    .GetDatabaseOptions();
+    .Get<DatabaseOptions>() ?? new DatabaseOptions();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -24,24 +24,23 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
     try
     {
+        var initializer = scope.ServiceProvider
+            .GetRequiredService<DatabaseInitializer>();
+
         if (databaseOptions.ApplyMigrationsOnStartup)
-        {
             await initializer.MigrateAsync();
-        }
 
         if (databaseOptions.SeedOnStartup)
-        {
             await initializer.SeedAsync();
-        }
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "An error occurred while initializing the database.");
+        logger.LogError(ex, "Database initialization failed.");
+        throw; // fail-fast
     }
 }
 
