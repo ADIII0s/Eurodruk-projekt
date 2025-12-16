@@ -37,7 +37,10 @@ using (var scope = app.Services.CreateScope())
         var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
 
         if (databaseOptions.ApplyMigrationsOnStartup)
+        {
             await initializer.MigrateAsync();
+            await initializer.LogStatusAsync(logger);
+        }
 
         if (databaseOptions.SeedOnStartup)
             await initializer.SeedAsync();
