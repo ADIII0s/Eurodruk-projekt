@@ -86,9 +86,9 @@ body{margin:0; background:linear-gradient(180deg,#0f131b 0%, var(--bg) 100%);
   display:flex; gap:8px; padding:6px;
   border-radius:999px; border:1px solid rgba(255,255,255,.06);
   background:rgba(255,255,255,.03);
-  justify-content:center;        /* było: flex-start */
-  width:100%;
-  margin-inline:auto;            /* pilsy na środek panelu */
+  justify-content:center;
+  width:min(520px, 100%);   /* klucz: mniejsze pole wyboru */
+  margin-inline:auto;
 }
 .tab-head label{
   cursor:pointer; padding:6px 14px; border-radius:999px; color:var(--muted); font-size:13px;
@@ -414,4 +414,5 @@ function openLightbox(src){ $lbImg.src=src; $lb.classList.add('open'); }
 renderList(); renderPicked();
 </script>
 </body>
+
 </html>
