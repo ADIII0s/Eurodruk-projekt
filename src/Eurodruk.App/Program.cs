@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var databaseOptions = builder.Configuration
+    .GetSection(DatabaseOptions.SectionName)
+    .GetDatabaseOptions();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -21,7 +25,24 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
-    await initializer.SeedAsync();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        if (databaseOptions.ApplyMigrationsOnStartup)
+        {
+            await initializer.MigrateAsync();
+        }
+
+        if (databaseOptions.SeedOnStartup)
+        {
+            await initializer.SeedAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while initializing the database.");
+    }
 }
 
 if (!app.Environment.IsDevelopment())
