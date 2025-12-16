@@ -84,25 +84,27 @@ body{margin:0; background:linear-gradient(180deg,#0f131b 0%, var(--bg) 100%);
 .tabs>input{position:absolute; opacity:0; pointer-events:none}
 .tab-head{
   display:flex;
-  gap:6px;
+  gap:8px;
 
-  padding:4px;                 /* ↓ KLUCZ: cienka pigułka */
+  padding:3px;                 /* ↓ cieńszy “kontener” */
   border-radius:999px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(255,255,255,.03);
 
+  width:100%;                  /* pełna szerokość sekcji */
   align-items:center;          /* wysokość = content */
 }
 .tab-head label{
   cursor:pointer;
 
-  padding:6px 18px;            /* tekst + trochę góra/dół */
-  line-height:1.2;             /* usuwa „powietrze” */
+  padding:8px 16px;        /* tekst + trochę góra/dół */
+  line-height:1.1;         /* usuwa “nadmiar powietrza” */
   border-radius:999px;
 
   color:var(--muted);
   font-size:13px;
 
+  flex:1 1 0;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -428,4 +430,5 @@ renderList(); renderPicked();
 </body>
 
 </html>
+
 
