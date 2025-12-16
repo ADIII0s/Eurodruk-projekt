@@ -80,27 +80,20 @@ body{margin:0; background:linear-gradient(180deg,#0f131b 0%, var(--bg) 100%);
   border:1px solid rgba(255,255,255,.06); font-weight:600}
 
 /* wąskie zakładki */
-.tabs{display:grid; gap:10px; justify-items:center;}  /* <— DODAJ */
-
+.tabs{display:grid; gap:10px}
+.tabs>input{position:absolute; opacity:0; pointer-events:none}
 .tab-head{
-  display:inline-flex;              /* <— zamiast flex */
-  gap:8px; padding:6px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.06);
+  display:flex; gap:8px; padding:6px;
+  border-radius:999px; border:1px solid rgba(255,255,255,.06);
   background:rgba(255,255,255,.03);
-  width:auto;                       /* <— zamiast 100% */
-  max-width:520px;                  /* dopasuj pod „drugi panel” */
+  justify-content:center;
+  width:min(520px, 100%);   /* klucz: mniejsze pole wyboru */
+  margin-inline:auto;
 }
-
 .tab-head label{
-  cursor:pointer;
-  padding:6px 14px;
-  border-radius:999px;
-  color:var(--muted);
-  font-size:13px;
-  flex:0 0 auto;                    /* <— zamiast flex:1 */
-  min-width:220px;                  /* równe „pigułki” */
-  text-align:center;
+  cursor:pointer; padding:6px 14px; border-radius:999px; color:var(--muted); font-size:13px;
+  flex:1 1 0;            /* oba przyciski równe */
+  text-align:center;     /* tekst na środku */
 }
 #t1:checked ~ .tab-head label[for="t1"],
 #t2:checked ~ .tab-head label[for="t2"]{color:var(--text);
@@ -423,4 +416,3 @@ renderList(); renderPicked();
 </body>
 
 </html>
-
