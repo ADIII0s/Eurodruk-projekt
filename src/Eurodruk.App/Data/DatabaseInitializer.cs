@@ -20,7 +20,7 @@ public class DatabaseInitializer
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        // Idempotencja: jak są dane, to nie seeduj drugi raz
+        // Idempotencja – seed tylko gdy baza pusta
         if (await _context.Tickets.AnyAsync(cancellationToken) ||
             await _context.Machines.AnyAsync(cancellationToken))
         {
