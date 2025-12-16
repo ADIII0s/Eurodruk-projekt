@@ -1,11 +1,26 @@
 @page "/workshop"
 @inject ITicketService TicketService
 
+@* Opis danych: 
+   - Wejścia listy: filtry status/maszyna/linia/datowanie/pełnotekst -> TicketFilter
+   - Wejścia szczegółów: akcje serwisowe (StartWork, CloseTicket), upload plików, notatki zamknięcia
+   - Wyjścia do API/DB: zaktualizowany status, notatki zamknięcia, dodane zdjęcia (base64), nowe wpisy historii
+   - Wyjścia do UI: wyświetlane metadane zgłoszenia, historia czynności, miniatury zdjęć 
+*@
+
 <h1>Panel warsztatu</h1>
-<div class="grid-2" style="margin-top:16px">
-    <section class="page-panel">
-        <h2>Baza awarii</h2>
-        <div class="filters">
+<div class="layout-split" style="margin-top:16px">
+    <section class="panel-card">
+        <div class="panel-header">
+            <div>
+                <h2 style="margin:0">Baza awarii</h2>
+                <p class="ticket-card__meta" style="margin:4px 0 0">Lista zgłoszeń z filtrowaniem po statusie, maszynie i datach.</p>
+            </div>
+            <div class="pill warn">Dane wejściowe: filtry</div>
+        </div>
+
+        @* Filtry opisują pola wykorzystywane w zapytaniu do TicketService.GetTicketsAsync. *@
+        <div class="filters-card">
             <label>
                 <span>Status</span>
                 <select @bind="filterModel.Status">
@@ -36,13 +51,13 @@
                 <span>Szukaj w treści</span>
                 <input @bind="filterModel.Text" placeholder="opis, operator" />
             </label>
-            <div class="actions">
-                <button class="btn" @onclick="ApplyFilters">Szukaj</button>
-                <button class="btn" @onclick="ClearFilters">Wyczyść</button>
+            <div class="filter-actions">
+                <button class="btn accent" @onclick="ApplyFilters">Szukaj</button>
+                <button class="btn ghost" @onclick="ClearFilters">Wyczyść</button>
             </div>
         </div>
 
-        <div class="table-list" style="margin-top:24px">
+        <div class="scroll-card">
             @if (tickets is null)
             {
                 <p class="empty-state">Ładowanie…</p>
@@ -55,63 +70,85 @@
             {
                 foreach (var ticket in tickets)
                 {
-                    <button class="ticket-card" @onclick="() => SelectTicket(ticket.Id)" style="text-align:left">
-                        <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm • @ticket.MachineName • Linia @ticket.ProductionLine</div>
-                        <strong>@ticket.Title</strong>
-                        <div>@ticket.OperatorDescription</div>
-                        <span class="status-pill @GetStatusClass(ticket.Status)">@ticket.Status</span>
+                    <button class="list-row @(selectedTicket?.Id == ticket.Id ? "active" : string.Empty)" @onclick="() => SelectTicket(ticket.Id)">
+                        <div>
+                            <div class="ticket-card__meta">@ticket.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm • @ticket.MachineName • Linia @ticket.ProductionLine</div>
+                            <div class="title">@ticket.Title</div>
+                            <div class="meta">@ticket.OperatorDescription</div>
+                        </div>
+                        <span class="pill @(ticket.Status == TicketStatus.Closed || ticket.Status == TicketStatus.Accepted ? "ok" : "warn")">@ticket.Status</span>
                     </button>
                 }
             }
         </div>
     </section>
 
-    <section class="page-panel">
-        <h2>Szczegóły zgłoszenia</h2>
+    <section class="panel-card">
+        <div class="panel-header">
+            <div>
+                <h2 style="margin:0">Szczegóły zgłoszenia</h2>
+                <p class="ticket-card__meta" style="margin:4px 0 0">Widok roboczy serwisanta: edycja statusu, opisów, zdjęcia.</p>
+            </div>
+            <div class="pill accent">Dane wyjściowe: status, notatki, zdjęcia</div>
+        </div>
+
         @if (selectedTicket is null)
         {
             <p class="empty-state">Wybierz zgłoszenie aby zobaczyć szczegóły.</p>
         }
         else
         {
-            <article>
-                <div class="tag-list">
+            <article class="details">
+                @* Widoczne metadane powiązane z tabelą zgłoszeń w bazie. *@
+                <div class="tags-row">
                     <span class="tag">Maszyna: @selectedTicket.MachineName</span>
                     <span class="tag">Linia: @selectedTicket.ProductionLine</span>
-                    <span class="tag">Lokalizacja: @selectedTicket.Location</span>
+                    <span class="tag">Segment: @selectedTicket.Location</span>
                     <span class="tag">Kod: @(string.IsNullOrWhiteSpace(selectedTicket.ErrorCode) ? "—" : selectedTicket.ErrorCode)</span>
                 </div>
-                <p class="ticket-card__meta" style="margin-top:12px">Operator: @selectedTicket.OperatorName</p>
-                <h3>Opis operatora</h3>
-                <p>@selectedTicket.OperatorDescription</p>
-                <h3>Opis serwisu</h3>
-                <p>@(string.IsNullOrWhiteSpace(selectedTicket.ServiceDescription) ? "Brak danych" : selectedTicket.ServiceDescription)</p>
+                <div class="place">Operator: @selectedTicket.OperatorName • Utworzono: @selectedTicket.CreatedAt.ToLocalTime():g</div>
 
-                <h3>Historia</h3>
-                <ul>
-                    @foreach (var action in selectedTicket.Actions.OrderByDescending(a => a.CreatedAt))
-                    {
-                        <li><strong>@action.Author</strong> – @action.CreatedAt.ToLocalTime():g<br />@action.Body</li>
-                    }
-                </ul>
+                <div class="tab-frame">
+                    <input id="tab-operator" type="radio" name="ticket-tabs" checked />
+                    <input id="tab-service" type="radio" name="ticket-tabs" />
+                    <input id="tab-history" type="radio" name="ticket-tabs" />
+                    <div class="tab-head">
+                        <label for="tab-operator">Opis operatora</label>
+                        <label for="tab-service">Opis serwisu</label>
+                        <label for="tab-history">Historia</label>
+                    </div>
+                    <div class="tab-body">
+                        <div id="panel-operator" class="tab-panel">@selectedTicket.OperatorDescription</div>
+                        <div id="panel-service" class="tab-panel">@(string.IsNullOrWhiteSpace(selectedTicket.ServiceDescription) ? "Brak danych" : selectedTicket.ServiceDescription)</div>
+                        <div id="panel-history" class="tab-panel">
+                            <ul>
+                                @foreach (var action in selectedTicket.Actions.OrderByDescending(a => a.CreatedAt))
+                                {
+                                    <li><strong>@action.Author</strong> – @action.CreatedAt.ToLocalTime():g<br />@action.Body</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
-                <h3>Zdjęcia</h3>
-                <div class="photo-rail">
+                <div class="photo-strip">
                     @if (selectedTicket.Photos.Any())
                     {
                         foreach (var photo in selectedTicket.Photos)
                         {
-                            <img src="@photo.Url" alt="@photo.Caption" />
+                            <div class="photo-tile">
+                                <img src="@photo.Url" alt="@photo.Caption" />
+                            </div>
                         }
                     }
                     else
                     {
-                        <span class="empty-state">Brak zdjęć</span>
+                        <div class="photo-tile">Brak zdjęć</div>
                     }
                 </div>
                 <InputFile OnChange="UploadPhoto" />
 
-                <div class="action-row" style="margin-top:16px">
+                <div class="action-bar">
                     <button class="primary" @onclick="StartWork">Rozpocznij pracę</button>
                     <button @onclick="() => showCloseDialog = true">Zamknij zgłoszenie</button>
                 </div>

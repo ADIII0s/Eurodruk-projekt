@@ -2,10 +2,16 @@
 @inject ITicketService TicketService
 @inject IReportService ReportService
 
+@* Dane raportowe:
+   - Wejścia filtrowania: status/maszyna/linia/tekst -> TicketFilter do listy zamkniętych zgłoszeń
+   - Wyjścia użytkownika: lista wybranych ticketId (selectedTicketIds) oraz pola tytuł/autor raportu
+   - Wyjścia do bazy: nowy raport (ReportInput) z referencjami do zgłoszeń i zapis historii raportów *@
+
 <h1>Panel raportów</h1>
 <div class="grid-2" style="margin-top:16px">
     <section class="page-panel">
         <h2>Zgłoszenia</h2>
+        @* Widok źródłowy: dane z TicketService są filtrowane i w dalszej kolejności mogą być powiązane z raportem. *@
         <div class="filters">
             <label>
                 <span>Status</span>
@@ -62,6 +68,7 @@
 
     <section class="page-panel">
         <h2>Raport roboczy</h2>
+        @* Warstwa pośrednia raportu - selectedTicketIds będzie wykorzystane jako lista kluczy obcych w tabeli raportów. *@
         @if (!selectedTicketIds.Any())
         {
             <p class="empty-state">Zaznacz zgłoszenia aby zbudować raport.</p>
