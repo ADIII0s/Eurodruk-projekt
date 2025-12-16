@@ -84,27 +84,26 @@ body{margin:0; background:linear-gradient(180deg,#0f131b 0%, var(--bg) 100%);
 .tabs>input{position:absolute; opacity:0; pointer-events:none}
 .tab-head{
   display:flex;
-  gap:8px;
+  gap:6px;
 
-  padding:3px;                 /* ↓ cieńszy “kontener” */
+  padding:2px;                 /* 🔴 klucz – minimalny margines */
   border-radius:999px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(255,255,255,.03);
 
-  width:100%;                  /* pełna szerokość sekcji */
-  align-items:center;          /* wysokość = content */
+  width:100%;
+  align-items:stretch;         /* 🔴 tło = wysokość label */
 }
 .tab-head label{
   cursor:pointer;
 
-  padding:8px 16px;        /* tekst + trochę góra/dół */
-  line-height:1.1;         /* usuwa “nadmiar powietrza” */
+  padding:8px 16px;        /* wysokość przycisku */
+  line-height:1;
   border-radius:999px;
 
-  color:var(--muted);
   font-size:13px;
-
   flex:1 1 0;
+
   display:flex;
   align-items:center;
   justify-content:center;
@@ -430,5 +429,6 @@ renderList(); renderPicked();
 </body>
 
 </html>
+
 
 
