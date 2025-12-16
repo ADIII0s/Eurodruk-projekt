@@ -1,5 +1,7 @@
+using System.Linq;
 using Eurodruk.App.Services.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Eurodruk.App.Data;
 
@@ -14,6 +16,14 @@ public class DatabaseInitializer
 
     public Task MigrateAsync(CancellationToken cancellationToken = default)
         => _context.Database.MigrateAsync(cancellationToken);
+
+    public async Task LogStatusAsync(ILogger logger, CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation("DB Provider: {Provider}", _context.Database.ProviderName);
+
+        var pending = await _context.Database.GetPendingMigrationsAsync(cancellationToken);
+        logger.LogInformation("Pending migrations: {Count}", pending.Count());
+    }
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
