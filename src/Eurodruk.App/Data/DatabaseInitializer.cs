@@ -12,16 +12,48 @@ public class DatabaseInitializer
         _context = context;
     }
 
+    public Task MigrateAsync(CancellationToken cancellationToken = default)
+        => _context.Database.MigrateAsync(cancellationToken);
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        await _context.Database.EnsureCreatedAsync(cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return;
 
-        if (await _context.Tickets.AnyAsync(cancellationToken))
+        // Idempotencja: jak są dane, to nie seeduj drugi raz
+        if (await _context.Tickets.AnyAsync(cancellationToken) ||
+            await _context.Machines.AnyAsync(cancellationToken))
         {
             return;
         }
 
         var now = DateTime.UtcNow;
+
+        var machines = new List<Machine>
+        {
+            new()
+            {
+                Name = "KBA Compacta 818",
+                Line = "L3",
+                Segment = "Sekcja 3",
+                Department = "Druk"
+            },
+            new()
+            {
+                Name = "Roland Lithoman IV",
+                Line = "L2",
+                Segment = "Odwijak A",
+                Department = "Druk"
+            },
+            new()
+            {
+                Name = "Atlas Copco",
+                Line = "DUR",
+                Segment = "Sprężarkownia",
+                Department = "Utrzymanie Ruchu"
+            }
+        };
+
         var tickets = new List<WorkshopTicket>
         {
             new()
@@ -84,7 +116,9 @@ public class DatabaseInitializer
             }
         };
 
+        _context.Machines.AddRange(machines);
         _context.Tickets.AddRange(tickets);
+
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
