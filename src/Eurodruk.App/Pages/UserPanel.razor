@@ -2,11 +2,17 @@
 @inject ITicketService TicketService
 @inject IUserTicketService UserTicketService
 
+@* Dane dla bazy: 
+   - Wejście formularza: tytuł, kod błędu, maszyna, linia, segment, operator, opis (tworzą encję TicketInput)
+   - Wyjścia listy: statusy ostatnich zgłoszeń oraz ich identyfikatory do późniejszych relacji zdjęć/akcji
+*@
+
 <h1>Panel użytkownika</h1>
 <div class="grid-2" style="margin-top:16px">
     <section class="page-panel">
         <h2>Zgłoś usterkę</h2>
         <p class="empty-state" style="text-align:left;padding:0 0 10px">Podaj podstawowe informacje o usterce, aby serwis mógł szybciej ją obsłużyć.</p>
+        @* Formularz odpowiada polom w TicketInput i jest bazą do schematu tabeli zgłoszeń. *@
         <EditForm Model="form" OnValidSubmit="SubmitTicket" class="ticket-form">
             <DataAnnotationsValidator />
             <ValidationSummary />

@@ -1,6 +1,11 @@
 @page "/acceptance"
 @inject IAcceptanceService AcceptanceService
 
+@* Dane procesu akceptacji:
+   - Wejście: lista zgłoszeń zakończonych oczekujących na decyzję (GetPendingAsync)
+   - Wyjście: decyzja kierownika (accepted bool + decisionNotes) zapisywana w tabeli akceptacji powiązanej z ticketId
+   - UI prezentuje: opis serwisu i operatora, status po decyzji będzie widoczny w innych modułach *@
+
 <h1>Panel akceptacji</h1>
 <div class="grid-2" style="margin-top:16px">
     <section class="page-panel">
@@ -38,9 +43,11 @@
         else
         {
             <article>
+                @* Dane opisowe pomagają powiązać decyzję z opisem technicznym bez dodatkowych zapytań. *@
                 <p><strong>Maszyna:</strong> @selected.MachineName (@selected.ProductionLine)</p>
                 <p><strong>Opis operatora:</strong> @selected.OperatorDescription</p>
                 <p><strong>Opis serwisu:</strong> @selected.ServiceDescription</p>
+                @* decisionNotes to notatka kierownika, która trafia do encji decyzji i może być raportowana. *@
                 <InputTextArea @bind-Value="decisionNotes" placeholder="Uwagi kierownika" />
                 <div class="action-row" style="margin-top:12px">
                     <button class="primary" @onclick="() => Decide(true)">Akceptuj</button>
